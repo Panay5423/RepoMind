@@ -358,7 +358,10 @@ export function computeNodePositions(
       list.push(n);
       byRank.set(r, list);
     }
-    const maxColHeight = Math.max(...Array.from(byRank.values()).map((v) => v.length), 1);
+    let maxColHeight = 1;
+    for (const v of byRank.values()) {
+      if (v.length > maxColHeight) maxColHeight = v.length;
+    }
     const ranks = Array.from(byRank.keys()).sort((a, b) => a - b);
     ranks.forEach((r, cIdx) => {
       const items = byRank.get(r) || [];
@@ -519,8 +522,14 @@ export function computeNodePositions(
     }
   }
 
-  const minX = Math.min(...list.map(([, p]) => p.x));
-  const minY = Math.min(...list.map(([, p]) => p.y));
+  let minX = Infinity;
+  let minY = Infinity;
+  for (const [, p] of list) {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+  }
+  if (!Number.isFinite(minX)) minX = 0;
+  if (!Number.isFinite(minY)) minY = 0;
   for (const [id, p] of list) {
     positions.set(id, { x: Math.round(p.x - minX + 40), y: Math.round(p.y - minY + 40) });
   }

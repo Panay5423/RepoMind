@@ -12,7 +12,6 @@ import ReactFlow, {
   type Node,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { toPng } from 'html-to-image';
 import {
   Activity,
   Braces,
@@ -26,10 +25,8 @@ import {
   RefreshCw,
   RotateCcw,
   Scan,
-  Search,
   Share2,
   Workflow,
-  X,
 } from 'lucide-react';
 import type {
   ArchitectureIntelligenceDTO,
@@ -52,16 +49,21 @@ import {
 } from './architecture/CustomArchNodes.tsx';
 import {
   buildDependencyReportMarkdown,
-  buildStandaloneSvg,
   computeNodePositions,
   NODE_KIND_META,
   RELATION_META,
   type LayoutMode,
 } from './architecture/graphConstants.ts';
+import {
+  exportArchitectureGraph,
+  type ArchitectureExportFormat,
+} from './architecture/graphExport.ts';
 import { NodeInspectorSidebar } from './architecture/NodeInspectorSidebar.tsx';
 import { SymbolExplorerPanel } from './architecture/SymbolExplorerPanel.tsx';
 import { DataFlowPanel } from './architecture/DataFlowPanel.tsx';
 import { AnalysisInsightsPanel } from './architecture/AnalysisInsightsPanel.tsx';
+import { GlobalSearch, type GlobalSearchResult } from './architecture/GlobalSearch.tsx';
+import { ErrorBoundary } from '../ErrorBoundary.tsx';
 
 interface ArchitectureTabProps {
   repositoryId: string;
@@ -98,15 +100,15 @@ function ArchitectureCanvasWorkspace({
   onOpenFile,
 }: ArchitectureTabProps) {
   const { notify } = useToast();
-  const { fitView, setCenter } = useReactFlow();
+  const { fitView, setCenter, getNode } = useReactFlow();
   const [searchParams, setSearchParams] = useSearchParams();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement | null>(null);
-
   const initialLevel = (searchParams.get('level') as GraphLevel) || 'module';
   const initialView = (searchParams.get('view') as ViewMode) || 'graph';
   const initialLayout = (searchParams.get('layout') as LayoutMode) || 'hierarchical';
   const initialNode = searchParams.get('node');
+  const pendingCenterNodeIdRef = useRef<string | null>(initialNode);
 
   const [intelligence, setIntelligence] = useState<ArchitectureIntelligenceDTO | null>(null);
   const [loading, setLoading] = useState(true);
@@ -141,9 +143,10 @@ function ArchitectureCanvasWorkspace({
   const [impact, setImpact] = useState<ImpactReportDTO | null>(null);
   const [impactLoading, setImpactLoading] = useState(false);
 
-  // Filters
+  // Filters & Export
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [exportingFormat, setExportingFormat] = useState<ArchitectureExportFormat | null>(null);
   const [kindFilter, setKindFilter] = useState<'all' | GraphNodeKind>('all');
   const [languageFilter, setLanguageFilter] = useState<string>('all');
   const [folderFilter, setFolderFilter] = useState<string>('all');
@@ -154,7 +157,7 @@ function ArchitectureCanvasWorkspace({
 
   // Search & Explorer link
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const [searchHighlightIds, setSearchHighlightIds] = useState<Set<string>>(new Set());
   const [symbolInitialSearch, setSymbolInitialSearch] = useState('');
 
   // Collapsed module groups in Grouped layout
@@ -193,6 +196,22 @@ function ArchitectureCanvasWorkspace({
     void loadIntelligence(false);
   }, [repositoryId]);
 
+  const handleHighlightIdsChange = useCallback((nextSet: Set<string>) => {
+    setSearchHighlightIds((prev) => {
+      if (prev.size === nextSet.size) {
+        let same = true;
+        for (const item of nextSet) {
+          if (!prev.has(item)) {
+            same = false;
+            break;
+          }
+        }
+        if (same) return prev;
+      }
+      return nextSet;
+    });
+  }, []);
+
   // Sync URL query parameters for shareable graph state
   useEffect(() => {
     if (searchParams.get('tab') !== 'architecture') return;
@@ -203,8 +222,10 @@ function ArchitectureCanvasWorkspace({
     next.set('layout', layoutMode);
     if (selectedNodeId) next.set('node', selectedNodeId);
     else next.delete('node');
-    setSearchParams(next, { replace: true });
-  }, [level, viewMode, layoutMode, selectedNodeId]);
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
+    }
+  }, [level, viewMode, layoutMode, selectedNodeId, searchParams, setSearchParams]);
 
   // Fetch impact report on node selection
   useEffect(() => {
@@ -470,22 +491,25 @@ function ArchitectureCanvasWorkspace({
           const p = manualOffsets.get(item.id) || basePositions.get(item.id) || { x: 40, y: 40 };
           const isConn = connectedNodeIds.has(item.id);
           const isFlowNode = flowNodeSet.has(item.id);
+          const isSearchMatch = searchHighlightIds.has(item.id);
+          const searchFilteringCanvas = searchQuery.trim().length > 0 && searchHighlightIds.size > 0;
           const dimmed =
             (activeFlowActive && !isFlowNode) ||
-            (!activeFlowActive && Boolean(anchorId) && !isConn);
+            (searchFilteringCanvas && !isSearchMatch && item.id !== selectedNodeId) ||
+            (!activeFlowActive && !searchFilteringCanvas && Boolean(anchorId) && !isConn);
 
           flowNodes.push({
             id: item.id,
             type: 'archNode',
             position: p,
-            selected: item.id === selectedNodeId || multiSelectedIds.includes(item.id),
+            selected: item.id === selectedNodeId,
             data: {
               ...item,
               isFocused: item.id === focusedNodeId,
               isConnectedToSelection: isConn && item.id !== selectedNodeId,
               isDimmed: dimmed,
               isFlowHighlighted: isFlowNode,
-              isMultiSelected: multiSelectedIds.includes(item.id),
+              isSearchMatch,
               onDrillDown: handleDrillDown,
             } satisfies ArchNodeRenderData,
           });
@@ -496,22 +520,25 @@ function ArchitectureCanvasWorkspace({
         const p = manualOffsets.get(item.id) || basePositions.get(item.id) || { x: 40, y: 40 };
         const isConn = connectedNodeIds.has(item.id);
         const isFlowNode = flowNodeSet.has(item.id);
+        const isSearchMatch = searchHighlightIds.has(item.id);
+        const searchFilteringCanvas = searchQuery.trim().length > 0 && searchHighlightIds.size > 0;
         const dimmed =
           (activeFlowActive && !isFlowNode) ||
-          (!activeFlowActive && Boolean(anchorId) && !isConn);
+          (searchFilteringCanvas && !isSearchMatch && item.id !== selectedNodeId) ||
+          (!activeFlowActive && !searchFilteringCanvas && Boolean(anchorId) && !isConn);
 
         flowNodes.push({
           id: item.id,
           type: 'archNode',
           position: p,
-          selected: item.id === selectedNodeId || multiSelectedIds.includes(item.id),
+          selected: item.id === selectedNodeId,
           data: {
             ...item,
             isFocused: item.id === focusedNodeId,
             isConnectedToSelection: isConn && item.id !== selectedNodeId,
             isDimmed: dimmed,
             isFlowHighlighted: isFlowNode,
-            isMultiSelected: multiSelectedIds.includes(item.id),
+            isSearchMatch,
             onDrillDown: handleDrillDown,
           } satisfies ArchNodeRenderData,
         });
@@ -566,11 +593,12 @@ function ArchitectureCanvasWorkspace({
     focusedNodeId,
     selectedNodeId,
     selectedEdgeId,
-    multiSelectedIds,
     connectedNodeIds,
     activeFlow,
     flowNodeSet,
     flowEdgeSet,
+    searchHighlightIds,
+    searchQuery,
     handleToggleGroup,
     handleDrillDown,
   ]);
@@ -580,25 +608,27 @@ function ArchitectureCanvasWorkspace({
     setRfNodes(computedFlow.flowNodes);
   }, [computedFlow.flowNodes, setRfNodes]);
 
-  // Global search across ALL 4 levels
-  const globalSearchResults = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q || !intelligence) return [];
-    const allLevels: GraphNodeDTO[] = [
-      ...intelligence.levels.system.nodes,
-      ...intelligence.levels.module.nodes,
-      ...intelligence.levels.file.nodes,
-      ...intelligence.levels.code.nodes,
-    ];
-    return allLevels
-      .filter(
-        (n) =>
-          n.name.toLowerCase().includes(q) ||
-          (n.filePath && n.filePath.toLowerCase().includes(q)) ||
-          n.kind.toLowerCase().includes(q)
-      )
-      .slice(0, 14);
-  }, [searchQuery, intelligence]);
+  // Center viewport reliably once target node is present in rendered React Flow nodes
+  useEffect(() => {
+    const targetId = pendingCenterNodeIdRef.current;
+    if (!targetId || viewMode !== 'graph') return;
+    const rfNode = rfNodes.find((n) => n.id === targetId) || getNode(targetId);
+    if (!rfNode) return;
+
+    pendingCenterNodeIdRef.current = null;
+    const rafId = requestAnimationFrame(() => {
+      setCenter(rfNode.position.x + 122, rfNode.position.y + 46, {
+        zoom: 1.08,
+        duration: 360,
+      });
+    });
+    return () => cancelAnimationFrame(rafId);
+  }, [rfNodes, viewMode, getNode, setCenter]);
+
+  const visibleNodeIdSet = useMemo(
+    () => new Set(visibleGraphNodes.map((n) => n.id)),
+    [visibleGraphNodes]
+  );
 
   const focusAndCenterNode = useCallback(
     (targetNode: { id: string; level: GraphLevel }) => {
@@ -613,18 +643,50 @@ function ArchitectureCanvasWorkspace({
       setSelectedEdgeId(null);
       setSelectedNodeId(targetNode.id);
       setFocusedNodeId(targetNode.id);
-      setSearchDropdownOpen(false);
-
-      setTimeout(() => {
-        const pos = manualOffsets.get(targetNode.id) || basePositions.get(targetNode.id);
-        if (pos) {
-          setCenter(pos.x + 120, pos.y + 45, { zoom: 1.05, duration: 350 });
-        } else {
-          fitView({ padding: 0.25, duration: 300 });
-        }
-      }, 90);
+      pendingCenterNodeIdRef.current = targetNode.id;
     },
-    [level, manualOffsets, basePositions, setCenter, fitView]
+    [level]
+  );
+
+  const handleSelectSearchResult = useCallback(
+    async (result: GlobalSearchResult) => {
+      // Clear restrictive filters that could hide the searched node
+      setKindFilter('all');
+      setLanguageFilter('all');
+      setFolderFilter('all');
+      setModuleFilter('all');
+      setEdgeRelationFilter('all');
+      setScopeSideFilter('all');
+      setDepOriginFilter('all');
+      setRelationFilterMode('all');
+      setHideUnrelated(false);
+
+      // Expand module container if collapsed in grouped layout
+      if (result.moduleGroup && collapsedGroups.has(result.moduleGroup)) {
+        setCollapsedGroups((prev) => {
+          const next = new Set(prev);
+          next.delete(result.moduleGroup!);
+          return next;
+        });
+      }
+
+      // If targeting a truncated L4 symbol, load its file's scoped code graph first
+      if (result.level === 'code' && result.requiresCodeSlice && result.filePath) {
+        try {
+          const res = await api.architecture.codeSlice(repositoryId, {
+            filePath: result.filePath,
+            limit: 160,
+          });
+          setScopedCodeGraph(res.graph);
+          setCodeScopeLabel(result.filePath);
+        } catch {
+          // fallback to existing level graph
+        }
+      }
+
+      focusAndCenterNode({ id: result.id, level: result.level });
+    },
+    [repositoryId, collapsedGroups, focusAndCenterNode]
   );
 
   const nodeMap = useMemo(() => {
@@ -646,42 +708,37 @@ function ArchitectureCanvasWorkspace({
     ? currentLevelData.edges.find((e) => e.id === selectedEdgeId) || null
     : null;
 
-  // Export Actions
-  const handleExportPng = async () => {
+  // Export Actions (PNG / SVG via dedicated full-graph exporter)
+  const handleExportVisualization = async (format: ArchitectureExportFormat) => {
     setExportOpen(false);
-    const targetEl = flowWrapperRef.current?.querySelector('.react-flow') as HTMLElement | null;
-    if (!targetEl) return;
-    try {
-      const dataUrl = await toPng(targetEl, {
-        backgroundColor: '#070A12',
-        pixelRatio: 2,
-      });
-      const a = document.createElement('a');
-      a.href = dataUrl;
-      a.download = `${repositoryName}-${level}-architecture.png`;
-      a.click();
-      notify('Exported PNG snapshot of architecture graph.', 'success');
-    } catch {
-      notify('Unable to render PNG in this browser; try SVG export instead.', 'error');
+    if (visibleGraphNodes.length === 0) {
+      notify('No visible nodes to export with current filters.', 'error');
+      return;
     }
-  };
 
-  const handleExportSvg = () => {
-    setExportOpen(false);
-    const svgText = buildStandaloneSvg(
-      visibleGraphNodes,
-      visibleGraphEdges,
-      basePositions,
-      `${repositoryName} — ${level.toUpperCase()} Architecture`
-    );
-    const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${repositoryName}-${level}-architecture.svg`;
-    a.click();
-    URL.revokeObjectURL(url);
-    notify('Exported vector SVG graph.', 'success');
+    setExportingFormat(format);
+    try {
+      const result = await exportArchitectureGraph({
+        format,
+        repositoryName,
+        level,
+        layoutMode,
+        nodes: visibleGraphNodes,
+        edges: visibleGraphEdges,
+        basePositions,
+        manualOffsets,
+        rfNodes,
+        flowWrapperEl: flowWrapperRef.current,
+      });
+      notify(`Exported ${result.filename}`, 'success');
+    } catch (err) {
+      notify(
+        err instanceof Error ? err.message : `Failed to export ${format.toUpperCase()} graph.`,
+        'error'
+      );
+    } finally {
+      setExportingFormat(null);
+    }
   };
 
   const handleExportJson = () => {
@@ -882,60 +939,16 @@ function ArchitectureCanvasWorkspace({
 
         {/* Right: Search, Filters, Layout, Actions, Export, Fullscreen */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Global Search */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onFocus={() => setSearchDropdownOpen(true)}
-              onBlur={() => setTimeout(() => setSearchDropdownOpen(false), 180)}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setSearchDropdownOpen(true);
-              }}
-              placeholder="Search nodes, files, symbols..."
-              className="w-48 sm:w-56 rounded-lg border border-white/10 bg-[#0B0F19] pl-8 pr-7 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
-
-            {searchDropdownOpen && globalSearchResults.length > 0 && (
-              <div className="absolute right-0 mt-1.5 w-80 max-h-80 overflow-y-auto rounded-xl border border-white/10 bg-[#0F172A] shadow-xl z-40 p-1.5 space-y-1">
-                {globalSearchResults.map((res) => {
-                  const meta = NODE_KIND_META[res.kind] || NODE_KIND_META.file;
-                  return (
-                    <button
-                      key={res.id}
-                      type="button"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        focusAndCenterNode({ id: res.id, level: res.level });
-                      }}
-                      className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center justify-between gap-2"
-                    >
-                      <div className="min-w-0">
-                        <div className="text-xs font-medium text-white truncate">{res.name}</div>
-                        <div className="text-[10px] font-mono text-slate-400 truncate">
-                          {res.filePath || res.description}
-                        </div>
-                      </div>
-                      <span className={`text-[10px] font-mono shrink-0 ${meta.accentText}`}>
-                        {res.level.toUpperCase()} · {meta.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          {/* Global Search Component */}
+          <GlobalSearch
+            intelligence={intelligence}
+            currentLevel={level}
+            visibleNodeIds={visibleNodeIdSet}
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            onSelectResult={(res) => void handleSelectSearchResult(res)}
+            onHighlightIdsChange={handleHighlightIdsChange}
+          />
 
           {/* Filters Popover Button */}
           <div className="relative">
@@ -1155,30 +1168,33 @@ function ArchitectureCanvasWorkspace({
           <div className="relative">
             <button
               type="button"
+              disabled={exportingFormat !== null}
               onClick={() => {
                 setExportOpen((v) => !v);
                 setFiltersOpen(false);
               }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-[#0B0F19] text-xs text-slate-200 hover:text-white whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-[#0B0F19] text-xs text-slate-200 hover:text-white disabled:opacity-60 whitespace-nowrap"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Export</span>
+              <span>{exportingFormat ? `Exporting ${exportingFormat.toUpperCase()}...` : 'Export'}</span>
             </button>
             {exportOpen && (
-              <div className="absolute right-0 mt-1.5 w-52 rounded-xl border border-white/10 bg-[#111827] shadow-xl z-40 p-1.5 text-xs space-y-0.5">
+              <div className="absolute right-0 mt-1.5 w-56 rounded-xl border border-white/10 bg-[#111827] shadow-xl z-40 p-1.5 text-xs space-y-0.5">
                 <button
                   type="button"
-                  onClick={() => void handleExportPng()}
-                  className="w-full text-left px-3 py-2 rounded-lg text-slate-200 hover:bg-white/[0.06]"
+                  onClick={() => void handleExportVisualization('png')}
+                  className="w-full text-left px-3 py-2 rounded-lg text-slate-200 hover:bg-white/[0.06] flex items-center justify-between"
                 >
-                  Export PNG Image
+                  <span>Export PNG Image</span>
+                  <span className="font-mono text-[10px] text-slate-500">2x</span>
                 </button>
                 <button
                   type="button"
-                  onClick={handleExportSvg}
-                  className="w-full text-left px-3 py-2 rounded-lg text-slate-200 hover:bg-white/[0.06]"
+                  onClick={() => void handleExportVisualization('svg')}
+                  className="w-full text-left px-3 py-2 rounded-lg text-slate-200 hover:bg-white/[0.06] flex items-center justify-between"
                 >
-                  Export SVG Vector
+                  <span>Export SVG Vector</span>
+                  <span className="font-mono text-[10px] text-slate-500">vector</span>
                 </button>
                 <button
                   type="button"
@@ -1352,9 +1368,18 @@ function ArchitectureCanvasWorkspace({
                     setSelectedEdgeId(edge.id);
                   }}
                   onSelectionChange={({ nodes: selNodes }) => {
-                    setMultiSelectedIds(
-                      selNodes.filter((n) => !n.id.startsWith('group:')).map((n) => n.id)
-                    );
+                    const nextIds = selNodes
+                      .filter((n) => !n.id.startsWith('group:'))
+                      .map((n) => n.id);
+                    setMultiSelectedIds((prev) => {
+                      if (
+                        prev.length === nextIds.length &&
+                        prev.every((id, idx) => id === nextIds[idx])
+                      ) {
+                        return prev;
+                      }
+                      return nextIds;
+                    });
                   }}
                   onPaneClick={() => {
                     setSelectedEdgeId(null);
@@ -1498,8 +1523,10 @@ function ArchitectureCanvasWorkspace({
 
 export function ArchitectureTab(props: ArchitectureTabProps) {
   return (
-    <ReactFlowProvider>
-      <ArchitectureCanvasWorkspace {...props} />
-    </ReactFlowProvider>
+    <ErrorBoundary title="Architecture Graph error">
+      <ReactFlowProvider>
+        <ArchitectureCanvasWorkspace {...props} />
+      </ReactFlowProvider>
+    </ErrorBoundary>
   );
 }

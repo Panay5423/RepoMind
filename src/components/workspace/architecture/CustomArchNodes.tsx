@@ -9,6 +9,7 @@ export interface ArchNodeRenderData extends GraphNodeDTO {
   isDimmed?: boolean;
   isFlowHighlighted?: boolean;
   isMultiSelected?: boolean;
+  isSearchMatch?: boolean;
   onDrillDown?: (node: GraphNodeDTO) => void;
 }
 
@@ -32,9 +33,11 @@ export function ArchSymbolNode({ data, selected }: NodeProps<ArchNodeRenderData>
       className={`w-[244px] rounded-lg border px-3.5 py-2.5 transition-opacity duration-150 ${meta.bgClass} ${
         activeHighlight
           ? 'border-blue-400 ring-1 ring-blue-400/60'
-          : data.isConnectedToSelection
-            ? 'border-violet-400/70'
-            : meta.borderClass
+          : data.isSearchMatch
+            ? 'border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(251,191,36,0.18)]'
+            : data.isConnectedToSelection
+              ? 'border-violet-400/70'
+              : meta.borderClass
       } ${data.isDimmed ? 'opacity-25' : 'opacity-100'}`}
     >
       <Handle
