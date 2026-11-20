@@ -311,7 +311,7 @@ export async function runRepositoryAnalysisPipeline(
     await db.replaceBugReports(repositoryId, indexResult.staticFindings);
     await db.upsertAnalysis(repositoryId, {
       projectOverview: 'Indexing complete. Generating AI architectural summary...',
-      architectureOverview: '',
+      architectureOverview: 'Indexing complete. Mapping modules, dependencies, and request flow...',
       technologyStack: [indexResult.primaryLanguage, ...indexResult.frameworks].filter(Boolean),
       frameworks: indexResult.frameworks,
       importantFiles: indexResult.storedFiles
@@ -443,8 +443,10 @@ Return concise JSON matching the schema:
     };
 
     const analysisData: Omit<AnalysisDTO, 'id' | 'repositoryId' | 'createdAt'> = {
-      projectOverview: aiResult.projectOverview || 'Repository analysis completed.',
-      architectureOverview: aiResult.architectureOverview || '',
+      projectOverview: aiResult.projectOverview?.trim() || 'Repository analysis completed.',
+      architectureOverview:
+        aiResult.architectureOverview?.trim() ||
+        'Architectural overview derived from indexed modules and directory layout.',
       technologyStack:
         aiResult.technologyStack?.length > 0
           ? aiResult.technologyStack
@@ -469,7 +471,7 @@ Return concise JSON matching the schema:
     )
       .filter((issue) => validPaths.has(issue.filePath))
       .map((issue) => ({
-        title: issue.title,
+        title: issue.title?.trim() || 'Potential code quality issue',
         category: (validCategories.has(issue.category)
           ? issue.category
           : 'quality') as BugFindingDTO['category'],
@@ -480,8 +482,8 @@ Return concise JSON matching the schema:
         filePath: issue.filePath,
         startLine: issue.startLine,
         endLine: issue.endLine,
-        explanation: issue.explanation,
-        suggestedFix: issue.suggestedFix,
+        explanation: issue.explanation?.trim() || 'Review this code path for potential issues.',
+        suggestedFix: issue.suggestedFix?.trim() || 'Validate inputs and handle edge cases explicitly.',
       }));
 
     await db.replaceBugReports(repositoryId, [...indexResult.staticFindings, ...aiFindings]);

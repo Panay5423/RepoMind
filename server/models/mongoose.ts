@@ -49,7 +49,7 @@ const FileChunkSchema = new Schema(
     chunkIndex: { type: Number, required: true },
     startLine: { type: Number, required: true },
     endLine: { type: Number, required: true },
-    content: { type: String, required: true },
+    content: { type: String, default: '' },
     embedding: { type: [Number], default: undefined },
   },
   { _id: false }
@@ -76,8 +76,8 @@ const AnalysisSchema = new Schema(
   {
     _id: { type: String, required: true },
     repositoryId: { type: String, required: true, unique: true, index: true },
-    projectOverview: { type: String, required: true },
-    architectureOverview: { type: String, required: true },
+    projectOverview: { type: String, default: '' },
+    architectureOverview: { type: String, default: '' },
     technologyStack: { type: [String], default: [] },
     frameworks: { type: [String], default: [] },
     importantFiles: { type: Schema.Types.Mixed, default: [] },
@@ -107,7 +107,7 @@ const MessageSchema = new Schema(
     _id: { type: String, required: true },
     conversationId: { type: String, required: true, index: true },
     role: { type: String, enum: ['user', 'assistant'], required: true },
-    content: { type: String, required: true },
+    content: { type: String, default: '' },
     citations: { type: Schema.Types.Mixed, default: [] },
     suggestedFollowUps: { type: [String], default: [] },
   },
@@ -124,7 +124,7 @@ const DocumentationSchema = new Schema(
       required: true,
     },
     title: { type: String, required: true },
-    content: { type: String, required: true },
+    content: { type: String, default: '' },
   },
   { timestamps: true }
 );
@@ -153,8 +153,8 @@ const BugReportSchema = new Schema(
     filePath: { type: String, required: true },
     startLine: { type: Number },
     endLine: { type: Number },
-    explanation: { type: String, required: true },
-    suggestedFix: { type: String, required: true },
+    explanation: { type: String, default: '' },
+    suggestedFix: { type: String, default: '' },
   },
   { timestamps: true }
 );
