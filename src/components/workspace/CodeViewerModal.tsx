@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Copy, FileCode2, X } from 'lucide-react';
 import { api } from '../../lib/api.ts';
 import { useToast } from '../../context/ToastContext.tsx';
@@ -28,6 +28,7 @@ export function CodeViewerModal({
     content: string;
   } | null>(null);
   const { notify } = useToast();
+  const highlightRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!filePath) return;
@@ -49,6 +50,12 @@ export function CodeViewerModal({
       active = false;
     };
   }, [repositoryId, filePath]);
+
+  useEffect(() => {
+    if (fileData && highlightStart && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }, [fileData, highlightStart]);
 
   if (!filePath) return null;
 
@@ -125,6 +132,7 @@ export function CodeViewerModal({
                 return (
                   <div
                     key={`${lineNum}-${idx}`}
+                    ref={lineNum === highlightStart ? highlightRef : undefined}
                     className={`flex px-3 py-0.5 ${
                       isHighlighted ? 'bg-blue-500/15 text-white' : 'text-slate-300 hover:bg-white/[0.02]'
                     }`}

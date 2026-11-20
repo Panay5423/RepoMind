@@ -33,6 +33,11 @@ import {
   sendChatMessage,
   updateDoc,
 } from '../controllers/aiFeaturesController.ts';
+import {
+  getArchitectureIntelligence,
+  getNodeImpactReport,
+  getScopedCodeLevel,
+} from '../controllers/architectureController.ts';
 
 export const apiRouter = Router();
 export const oauthCallbackRouter = Router();
@@ -75,7 +80,12 @@ apiRouter.get('/repositories/:id/file', apiLimiter, requireAuth, getRepositoryFi
 apiRouter.get('/repositories/:id/search', apiLimiter, requireAuth, searchRepositoryCode);
 apiRouter.post('/repositories/:id/explain-file', aiLimiter, requireAuth, explainRepositoryFile);
 apiRouter.post('/repositories/:id/reanalyze', aiLimiter, requireAuth, reanalyzeRepository);
-apiRouter.delete('/repositories/:id', apiLimiter, requireAuth, deleteRepository);
+apiRouter.delete('/repositories/:id', aiLimiter, requireAuth, deleteRepository);
+
+// Deterministic AST Architecture Intelligence
+apiRouter.get('/repositories/:id/architecture', apiLimiter, requireAuth, getArchitectureIntelligence);
+apiRouter.get('/repositories/:id/architecture/code', apiLimiter, requireAuth, getScopedCodeLevel);
+apiRouter.get('/repositories/:id/architecture/impact', apiLimiter, requireAuth, getNodeImpactReport);
 
 // AI Code Chat & RAG
 apiRouter.get('/repositories/:id/conversations', apiLimiter, requireAuth, listConversations);

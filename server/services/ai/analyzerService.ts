@@ -9,6 +9,10 @@ import type {
 import { SYSTEM_SECURITY_PREAMBLE, wrapUntrustedCode } from '../../utils/security.ts';
 import { formatGeminiError, generateJson } from './geminiClient.ts';
 import { indexRepositoryFiles, type IndexResult } from '../repository/indexerService.ts';
+import {
+  buildArchitectureIntelligence,
+  invalidateArchitectureCache,
+} from '../architecture/graphBuilderService.ts';
 import type { RawRepoFile } from '../github/githubService.ts';
 
 interface GeminiCoreAnalysisPayload {
@@ -307,6 +311,16 @@ export async function runRepositoryAnalysisPipeline(
       await updateProgress(p, stage, 'indexing');
     });
 
+    invalidateArchitectureCache(repositoryId);
+    const { legacyGraph: deterministicBaselineGraph } = buildArchitectureIntelligence({
+      repositoryId,
+      repositoryName: repositoryId,
+      files: indexResult.storedFiles,
+      dependencies: indexResult.dependencies,
+      frameworks: indexResult.frameworks,
+      forceRefresh: true,
+    });
+
     // Save deterministic baseline analysis & static bugs right away so workspace tabs work immediately
     await db.replaceBugReports(repositoryId, indexResult.staticFindings);
     await db.upsertAnalysis(repositoryId, {
@@ -321,7 +335,10 @@ export async function runRepositoryAnalysisPipeline(
       importantModules: [],
       dependencies: indexResult.dependencies,
       complexityIndicators: indexResult.complexityIndicators,
-      architectureGraph: buildBaselineGraph(indexResult),
+      architectureGraph:
+        deterministicBaselineGraph.nodes.length > 0
+          ? deterministicBaselineGraph
+          : buildBaselineGraph(indexResult),
       healthReport: {
         overallEstimate: 75,
         disclaimer:

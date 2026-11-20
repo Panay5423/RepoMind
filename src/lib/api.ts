@@ -1,5 +1,6 @@
 import type {
   AnalysisDTO,
+  ArchitectureIntelligenceDTO,
   BugFindingDTO,
   ChatMode,
   ConversationDTO,
@@ -7,6 +8,8 @@ import type {
   DocType,
   DocumentationDTO,
   FileSearchMatch,
+  ImpactReportDTO,
+  LevelGraphDTO,
   MessageDTO,
   PublicUser,
   RepositoryDTO,
@@ -162,6 +165,29 @@ export const api = {
       request<{ ok: boolean }>(`/api/repositories/${id}`, {
         method: 'DELETE',
       }),
+  },
+
+  architecture: {
+    get: (repoId: string, refresh = false) =>
+      request<{ intelligence: ArchitectureIntelligenceDTO }>(
+        `/api/repositories/${repoId}/architecture${refresh ? '?refresh=1' : ''}`
+      ),
+    codeSlice: (
+      repoId: string,
+      params: { filePath?: string; moduleGroup?: string; limit?: number }
+    ) => {
+      const qs = new URLSearchParams();
+      if (params.filePath) qs.set('filePath', params.filePath);
+      if (params.moduleGroup) qs.set('moduleGroup', params.moduleGroup);
+      if (params.limit) qs.set('limit', String(params.limit));
+      return request<{ graph: LevelGraphDTO }>(
+        `/api/repositories/${repoId}/architecture/code?${qs.toString()}`
+      );
+    },
+    impact: (repoId: string, nodeId: string) =>
+      request<{ impact: ImpactReportDTO }>(
+        `/api/repositories/${repoId}/architecture/impact?nodeId=${encodeURIComponent(nodeId)}`
+      ),
   },
 
   chat: {

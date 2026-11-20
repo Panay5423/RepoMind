@@ -215,6 +215,25 @@ export function chunkFileContent(
   return chunks;
 }
 
+export function reconstructFileContent(chunks: StoredFileChunk[]): string {
+  const lineMap = new Map<number, string>();
+  for (const chunk of chunks) {
+    for (const rawLine of chunk.content.split('\n')) {
+      const m = rawLine.match(/^(\d+):\s?(.*)$/);
+      if (m) {
+        lineMap.set(Number(m[1]), m[2]);
+      }
+    }
+  }
+  if (lineMap.size === 0) {
+    return chunks.map((c) => c.content).join('\n');
+  }
+  return Array.from(lineMap.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([, txt]) => txt)
+    .join('\n');
+}
+
 export function buildLanguageStats(
   files: Array<{ language: string; size: number; lines: number }>
 ): LanguageStat[] {

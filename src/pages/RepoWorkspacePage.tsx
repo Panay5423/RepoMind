@@ -421,10 +421,11 @@ export function RepoWorkspacePage() {
                   onOpenFile={openFile}
                 />
               )}
-              {activeTab === 'architecture' && analysis && (
+              {activeTab === 'architecture' && (
                 <ArchitectureTab
-                  graph={analysis.architectureGraph}
-                  onOpenFile={(p) => openFile(p)}
+                  repositoryId={repository.id}
+                  repositoryName={repository.fullName}
+                  onOpenFile={openFile}
                   onAskAI={handleAskAI}
                 />
               )}

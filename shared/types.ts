@@ -218,3 +218,293 @@ export interface DashboardOverviewDTO {
   recentRepositories: RepositoryDTO[];
   averageHealthScore: number | null;
 }
+
+// ============================================================================
+// Multi-Level Deterministic Architecture Intelligence Types
+// ============================================================================
+
+export type GraphLevel = 'system' | 'module' | 'file' | 'code';
+
+export type GraphNodeKind =
+  | 'application'
+  | 'module'
+  | 'component'
+  | 'class'
+  | 'function'
+  | 'method'
+  | 'object'
+  | 'variable'
+  | 'constant'
+  | 'interface'
+  | 'type'
+  | 'api_endpoint'
+  | 'controller'
+  | 'service'
+  | 'middleware'
+  | 'database'
+  | 'collection'
+  | 'model'
+  | 'route'
+  | 'event'
+  | 'socket'
+  | 'external_dependency'
+  | 'background_worker'
+  | 'file';
+
+export type GraphEdgeRelation =
+  | 'IMPORTS'
+  | 'EXPORTS'
+  | 'CALLS'
+  | 'USES'
+  | 'EXTENDS'
+  | 'IMPLEMENTS'
+  | 'INSTANTIATES'
+  | 'READS'
+  | 'WRITES'
+  | 'DEPENDS_ON'
+  | 'TRIGGERS'
+  | 'LISTENS_TO'
+  | 'SENDS_DATA_TO'
+  | 'RETURNS'
+  | 'INJECTS'
+  | 'QUERIES';
+
+export type ArchitectureLayer =
+  | 'frontend'
+  | 'backend'
+  | 'api'
+  | 'database'
+  | 'service'
+  | 'worker'
+  | 'realtime'
+  | 'external'
+  | 'shared'
+  | 'config';
+
+export interface GraphNodeDTO {
+  id: string;
+  name: string;
+  kind: GraphNodeKind;
+  level: GraphLevel;
+  layer: ArchitectureLayer;
+  filePath?: string;
+  line?: number;
+  endLine?: number;
+  language?: string;
+  folder?: string;
+  moduleGroup?: string;
+  description: string;
+  isExternal?: boolean;
+  parentId?: string;
+  drillDownLevel?: GraphLevel;
+  dependencies: string[];
+  incomingCount: number;
+  outgoingCount: number;
+  usageCount: number;
+  exported?: boolean;
+  codePreview?: string;
+  metadata?: {
+    parameters?: Array<{ name: string; type?: string }>;
+    returnType?: string;
+    httpMethod?: string;
+    routePath?: string;
+    decorators?: string[];
+    scope?: string;
+    isHook?: boolean;
+    isAsync?: boolean;
+    properties?: string[];
+    methods?: string[];
+    extendsClass?: string;
+    implementsInterfaces?: string[];
+    fileCount?: number;
+    lines?: number;
+    childFiles?: string[];
+  };
+}
+
+export interface GraphEdgeDTO {
+  id: string;
+  source: string;
+  target: string;
+  relation: GraphEdgeRelation;
+  label: string;
+  filePath?: string;
+  line?: number;
+  animated?: boolean;
+  weight?: number;
+  description?: string;
+}
+
+export interface LevelGraphDTO {
+  level: GraphLevel;
+  nodes: GraphNodeDTO[];
+  edges: GraphEdgeDTO[];
+  truncated?: boolean;
+  totalNodesAvailable?: number;
+}
+
+export interface FunctionSymbolInfo {
+  id: string;
+  name: string;
+  kind: 'function' | 'method' | 'hook';
+  filePath: string;
+  line: number;
+  endLine: number;
+  parameters: Array<{ name: string; type?: string }>;
+  returnType?: string;
+  calls: string[];
+  calledBy: string[];
+  variablesUsed: string[];
+  dependencies: string[];
+  exported: boolean;
+  isAsync?: boolean;
+  isHook?: boolean;
+  className?: string;
+}
+
+export interface ClassSymbolInfo {
+  id: string;
+  name: string;
+  filePath: string;
+  line: number;
+  endLine: number;
+  properties: Array<{ name: string; type?: string; visibility?: string }>;
+  constructorParams: Array<{ name: string; type?: string }>;
+  methods: string[];
+  extendsClass?: string;
+  implementsInterfaces: string[];
+  dependencies: string[];
+  decorators: string[];
+  exported: boolean;
+}
+
+export interface ObjectSymbolInfo {
+  id: string;
+  name: string;
+  filePath: string;
+  line: number;
+  endLine: number;
+  properties: string[];
+  methods: string[];
+  createdAt: { filePath: string; line: number };
+  references: Array<{ filePath: string; line: number; context: string }>;
+  exported: boolean;
+}
+
+export interface VariableSymbolInfo {
+  id: string;
+  name: string;
+  kind: 'variable' | 'constant' | 'interface' | 'type' | 'enum';
+  filePath: string;
+  line: number;
+  dataType?: string;
+  scope: 'module' | 'function' | 'class' | 'block';
+  exported: boolean;
+  references: Array<{ filePath: string; line: number; access: 'read' | 'write' | 'type' }>;
+}
+
+export interface DataFlowStep {
+  nodeId: string;
+  name: string;
+  kind: GraphNodeKind;
+  layer: ArchitectureLayer;
+  filePath?: string;
+  line?: number;
+  relationToNext?: GraphEdgeRelation;
+  detail?: string;
+}
+
+export interface DataFlowChain {
+  id: string;
+  title: string;
+  category:
+    | 'express_api'
+    | 'frontend_api'
+    | 'angular_http'
+    | 'database_rw'
+    | 'websocket'
+    | 'worker_job'
+    | 'event';
+  entryPoint: string;
+  steps: DataFlowStep[];
+  edgeIds: string[];
+  nodeIds: string[];
+}
+
+export interface UnusedImportInfo {
+  filePath: string;
+  identifier: string;
+  source: string;
+  line: number;
+}
+
+export interface CoupledNodeInfo {
+  nodeId: string;
+  name: string;
+  kind: GraphNodeKind;
+  filePath?: string;
+  inDegree: number;
+  outDegree: number;
+  totalDegree: number;
+}
+
+export interface ImpactReportDTO {
+  nodeId: string;
+  nodeName: string;
+  nodeKind: GraphNodeKind;
+  filePath?: string;
+  directDependencies: Array<{ id: string; name: string; kind: GraphNodeKind; filePath?: string }>;
+  transitiveDependencies: Array<{ id: string; name: string; kind: GraphNodeKind; filePath?: string }>;
+  directDependents: Array<{ id: string; name: string; kind: GraphNodeKind; filePath?: string }>;
+  transitiveDependents: Array<{ id: string; name: string; kind: GraphNodeKind; filePath?: string }>;
+  affectedFiles: string[];
+  affectedApisAndComponents: Array<{ id: string; name: string; kind: GraphNodeKind; filePath?: string }>;
+  riskLevel: 'low' | 'medium' | 'high';
+  note: string;
+}
+
+export interface ArchitectureComplexityMetrics {
+  fileCount: number;
+  functionCount: number;
+  classCount: number;
+  methodCount: number;
+  objectCount: number;
+  interfaceAndTypeCount: number;
+  variableAndConstantCount: number;
+  importCount: number;
+  dependencyCount: number;
+  circularDependencyCount: number;
+  unusedImportCount: number;
+  orphanedFileCount: number;
+  endpointCount: number;
+  socketEventCount: number;
+  modelCount: number;
+}
+
+export interface ArchitectureIntelligenceDTO {
+  repositoryId: string;
+  repositoryName: string;
+  generatedAt: string;
+  levels: Record<GraphLevel, LevelGraphDTO>;
+  symbols: {
+    functions: FunctionSymbolInfo[];
+    classes: ClassSymbolInfo[];
+    objects: ObjectSymbolInfo[];
+    variables: VariableSymbolInfo[];
+  };
+  dataFlows: DataFlowChain[];
+  dependencyAnalysis: {
+    circularDependencies: string[][];
+    unusedImports: UnusedImportInfo[];
+    orphanedFiles: string[];
+    highlyCoupledNodes: CoupledNodeInfo[];
+  };
+  complexityMetrics: ArchitectureComplexityMetrics;
+  cacheMeta: {
+    reusedFilesCount: number;
+    parsedFilesCount: number;
+    parseErrors: Array<{ filePath: string; message: string }>;
+    cached: boolean;
+  };
+}
+
