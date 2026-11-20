@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { CornerDownLeft, FileCode2, Search, X } from 'lucide-react';
 import type {
   ArchitectureIntelligenceDTO,
@@ -53,7 +54,7 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
   return (
     <>
       {before}
-      <span className="text-amber-300 bg-amber-400/15 rounded-sm px-0.5">{match}</span>
+      <span className="text-[#FBBF24] bg-[#FBBF24]/15 rounded-sm px-0.5">{match}</span>
       {after}
     </>
   );
@@ -74,7 +75,6 @@ export function GlobalSearch({
   const [activeIndex, setActiveIndex] = useState(0);
   const [levelScope, setLevelScope] = useState<'all' | GraphLevel>('all');
 
-  // Keyboard shortcut: Cmd/Ctrl + K focuses global architecture search
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -92,7 +92,6 @@ export function GlobalSearch({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const onMouseDown = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -103,7 +102,6 @@ export function GlobalSearch({
     return () => document.removeEventListener('mousedown', onMouseDown);
   }, []);
 
-  // Build searchable unified index across all 4 graph levels + full symbol catalog
   const unifiedIndex = useMemo(() => {
     const seen = new Map<string, Omit<GlobalSearchResult, 'inCurrentView' | 'score'>>();
 
@@ -126,7 +124,6 @@ export function GlobalSearch({
       }
     }
 
-    // Include symbols that may have been truncated from the default L4 graph slice
     for (const fn of intelligence.symbols.functions) {
       if (!seen.has(fn.id)) {
         seen.set(fn.id, {
@@ -187,7 +184,6 @@ export function GlobalSearch({
     return Array.from(seen.values());
   }, [intelligence]);
 
-  // Rank results by relevance (exact name > prefix > name substring > filePath match > current level boost)
   const { rankedResults, currentViewMatchIds } = useMemo(() => {
     const q = query.trim().toLowerCase();
     const viewMatches = new Set<string>();
@@ -251,12 +247,10 @@ export function GlobalSearch({
     };
   }, [query, unifiedIndex, visibleNodeIds, levelScope, currentLevel]);
 
-  // Notify canvas whenever highlighted node IDs in current view change
   useEffect(() => {
     onHighlightIdsChange?.(currentViewMatchIds);
   }, [currentViewMatchIds, onHighlightIdsChange]);
 
-  // Reset active index when query or results change
   useEffect(() => {
     setActiveIndex(0);
   }, [query, levelScope]);
@@ -306,7 +300,7 @@ export function GlobalSearch({
   return (
     <div ref={containerRef} className="relative">
       <div className="relative flex items-center">
-        <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input
           ref={inputRef}
           type="text"
@@ -320,21 +314,25 @@ export function GlobalSearch({
             setOpen(true);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Search nodes or paths (⌘K)..."
-          className={`w-52 sm:w-64 rounded-lg border bg-[#0B0F19] pl-8 ${
-            hasQuery ? 'pr-24' : 'pr-3'
-          } py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors ${
+          placeholder="Search nodes or paths..."
+          className={`h-8 w-52 sm:w-64 rounded-lg border bg-[#080B12] pl-8 ${
+            hasQuery ? 'pr-24' : 'pr-10'
+          } text-xs text-[#F1F5F9] placeholder-[#64748B] focus:outline-none transition-colors duration-150 ${
             hasQuery
-              ? 'border-amber-400/50 focus:border-amber-400'
-              : 'border-white/10 focus:border-blue-500'
+              ? 'border-[#FBBF24]/55 focus:border-[#FBBF24]'
+              : 'border-[#202A3A] hover:border-[#2D3B52] focus:border-[#60A5FA]'
           }`}
         />
 
-        {hasQuery && (
+        {!hasQuery ? (
+          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-[#64748B]">
+            ⌘K
+          </span>
+        ) : (
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
             <span
               className={`text-[10px] font-mono tabular-nums ${
-                currentViewMatchIds.size > 0 ? 'text-amber-300' : 'text-slate-500'
+                currentViewMatchIds.size > 0 ? 'text-[#FBBF24]' : 'text-[#64748B]'
               }`}
               title="Matching nodes highlighted in current view"
             >
@@ -347,7 +345,7 @@ export function GlobalSearch({
                 setOpen(false);
               }}
               aria-label="Clear search"
-              className="text-slate-500 hover:text-white transition-colors"
+              className="text-[#64748B] hover:text-[#F1F5F9] transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -355,102 +353,113 @@ export function GlobalSearch({
         )}
       </div>
 
-      {open && hasQuery && (
-        <div className="absolute right-0 mt-1.5 w-[22rem] sm:w-[26rem] rounded-xl border border-white/10 bg-[#0F172A] shadow-2xl z-50 overflow-hidden">
-          {/* Level Scope Filter Bar */}
-          <div className="px-3 py-2 border-b border-white/[0.08] bg-[#0B0F19]/80 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1">
-              {(['all', 'system', 'module', 'file', 'code'] as const).map((lvl) => (
-                <button
-                  key={lvl}
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => setLevelScope(lvl)}
-                  className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase transition-colors ${
-                    levelScope === lvl
-                      ? 'bg-blue-600 text-white'
-                      : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-                  }`}
-                >
-                  {lvl === 'all' ? 'All' : lvl}
-                </button>
-              ))}
-            </div>
-            <span className="text-[10px] font-mono text-slate-500 tabular-nums">
-              {rankedResults.length} hit{rankedResults.length === 1 ? '' : 's'}
-            </span>
-          </div>
-
-          {rankedResults.length === 0 ? (
-            <div className="px-4 py-6 text-center">
-              <FileCode2 className="w-5 h-5 text-slate-500 mx-auto mb-1.5" />
-              <p className="text-xs text-slate-300">No nodes match &ldquo;{query.trim()}&rdquo;</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Try a file path, module name, function, or class.
-              </p>
-            </div>
-          ) : (
-            <div className="max-h-80 overflow-y-auto p-1.5 space-y-0.5">
-              {rankedResults.map((res, idx) => {
-                const meta = NODE_KIND_META[res.kind] || NODE_KIND_META.file;
-                const Icon = meta.icon;
-                const isActive = idx === activeIndex;
-
-                return (
+      <AnimatePresence>
+        {open && hasQuery && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.985 }}
+            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute right-0 mt-1.5 w-[22rem] sm:w-[27rem] rounded-xl border border-[#202A3A] bg-[#101623] shadow-2xl z-50 overflow-hidden"
+          >
+            {/* Level Scope Filter Bar */}
+            <div className="px-3 py-2 border-b border-[#202A3A] bg-[#0D111B] flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1">
+                {(['all', 'system', 'module', 'file', 'code'] as const).map((lvl) => (
                   <button
-                    key={`${res.level}:${res.id}`}
+                    key={lvl}
                     type="button"
-                    onMouseEnter={() => setActiveIndex(idx)}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      handleSelect(res);
-                    }}
-                    className={`w-full text-left px-2.5 py-2 rounded-lg transition-colors flex items-center justify-between gap-2.5 ${
-                      isActive ? 'bg-blue-600/20 border border-blue-500/35' : 'hover:bg-white/[0.05] border border-transparent'
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setLevelScope(lvl)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono capitalize transition-colors ${
+                      levelScope === lvl
+                        ? 'bg-[#60A5FA]/15 text-[#60A5FA] border border-[#60A5FA]/30'
+                        : 'text-[#64748B] hover:text-[#F1F5F9] hover:bg-[#151D2B] border border-transparent'
                     }`}
                   >
-                    <div className="flex items-start gap-2.5 min-w-0">
-                      <Icon className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${meta.accentText}`} />
-                      <div className="min-w-0">
-                        <div className="text-xs font-medium text-white truncate">
-                          <HighlightedText text={res.name} query={query} />
-                        </div>
-                        <div className="text-[10px] font-mono text-slate-400 truncate">
-                          {res.filePath ? (
-                            <>
-                              <HighlightedText text={res.filePath} query={query} />
-                              {res.line ? `:${res.line}` : ''}
-                            </>
-                          ) : (
-                            res.description
-                          )}
+                    {lvl}
+                  </button>
+                ))}
+              </div>
+              <span className="text-[10px] font-mono text-[#64748B] tabular-nums">
+                {rankedResults.length} hit{rankedResults.length === 1 ? '' : 's'}
+              </span>
+            </div>
+
+            {rankedResults.length === 0 ? (
+              <div className="px-4 py-7 text-center">
+                <FileCode2 className="w-5 h-5 text-[#64748B] mx-auto mb-2" />
+                <p className="text-xs text-[#F1F5F9]">No nodes match &ldquo;{query.trim()}&rdquo;</p>
+                <p className="text-[11px] text-[#64748B] mt-0.5">
+                  Try a file path, module name, function, or class.
+                </p>
+              </div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto p-1.5 space-y-0.5">
+                {rankedResults.map((res, idx) => {
+                  const meta = NODE_KIND_META[res.kind] || NODE_KIND_META.file;
+                  const Icon = meta.icon;
+                  const isActive = idx === activeIndex;
+
+                  return (
+                    <button
+                      key={`${res.level}:${res.id}`}
+                      type="button"
+                      onMouseEnter={() => setActiveIndex(idx)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelect(res);
+                      }}
+                      className={`w-full text-left px-2.5 py-2 rounded-lg transition-colors flex items-center justify-between gap-2.5 border ${
+                        isActive
+                          ? 'bg-[#151D2B] border-[#60A5FA]/35'
+                          : 'hover:bg-[#151D2B]/60 border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <Icon className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${meta.accentText}`} />
+                        <div className="min-w-0">
+                          <div className="text-xs font-medium text-[#F1F5F9] truncate">
+                            <HighlightedText text={res.name} query={query} />
+                          </div>
+                          <div className="text-[10.5px] font-mono text-[#94A3B8] truncate">
+                            {res.filePath ? (
+                              <>
+                                <HighlightedText text={res.filePath} query={query} />
+                                {res.line ? `:${res.line}` : ''}
+                              </>
+                            ) : (
+                              res.description
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-2 shrink-0 text-[10px] font-mono">
-                      {res.inCurrentView && (
-                        <span className="text-amber-300" title="Visible in current view">
-                          in view
+                      <div className="flex items-center gap-2 shrink-0 text-[10px] font-mono">
+                        {res.inCurrentView && (
+                          <span className="text-[#FBBF24]" title="Visible in current view">
+                            in view
+                          </span>
+                        )}
+                        <span className="text-[#64748B]">
+                          {res.level} · <span className={meta.accentText}>{meta.label}</span>
                         </span>
-                      )}
-                      <span className={meta.accentText}>
-                        {res.level.toUpperCase()} · {meta.label}
-                      </span>
-                      {isActive && <CornerDownLeft className="w-3 h-3 text-blue-300" />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                        {isActive && <CornerDownLeft className="w-3 h-3 text-[#60A5FA]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-          <div className="px-3 py-1.5 border-t border-white/[0.06] bg-[#0B0F19]/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-            <span>↑↓ navigate · Enter focus · Esc close</span>
-            <span>Highlights live on canvas</span>
-          </div>
-        </div>
-      )}
+            <div className="px-3 py-1.5 border-t border-[#202A3A] bg-[#0D111B] flex items-center justify-between text-[10px] text-[#64748B] font-mono">
+              <span>↑↓ navigate · Enter focus · Esc close</span>
+              <span>Live canvas highlight</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+

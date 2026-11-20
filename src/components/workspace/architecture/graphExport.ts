@@ -29,8 +29,8 @@ export interface ExportArchitectureResult {
   method: 'svg' | 'dom-png' | 'svg-canvas-png';
 }
 
-const NODE_W = 244;
-const NODE_H = 96;
+const NODE_W = 248;
+const NODE_H = 98;
 const HEADER_H = 56;
 const PADDING = 48;
 
@@ -131,8 +131,8 @@ export function buildArchitectureSvg(params: {
         const gw = Math.max(...pts.map((p) => p.x)) + offsetX + NODE_W + 18 - gx;
         const gh = Math.max(...pts.map((p) => p.y)) + offsetY + NODE_H + 18 - gy;
         return `<g>
-  <rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" rx="12" fill="#0B0F19" fill-opacity="0.7" stroke="#334155" stroke-opacity="0.45" stroke-width="1" />
-  <text x="${gx + 12}" y="${gy + 20}" fill="#CBD5E1" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="600" font-size="11">${escapeXml(groupName)} · ${items.length}</text>
+  <rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" rx="10" fill="#0D111B" fill-opacity="0.82" stroke="#202A3A" stroke-width="1" />
+  <text x="${gx + 12}" y="${gy + 20}" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="600" font-size="11">${escapeXml(groupName)} · ${items.length}</text>
 </g>`;
       })
       .join('\n');
@@ -161,7 +161,7 @@ export function buildArchitectureSvg(params: {
 
       return `<g>
   <path d="M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}" fill="none" stroke="${rel.color}" stroke-width="1.6" stroke-opacity="0.88" ${rel.dash ? `stroke-dasharray="${rel.dash}"` : ''} marker-end="url(#arrow-${e.relation})" />
-  <rect x="${midX - label.length * 3.1 - 5}" y="${midY - 9}" width="${label.length * 6.2 + 10}" height="14" rx="3" fill="#070A12" fill-opacity="0.9" />
+  <rect x="${midX - label.length * 3.1 - 5}" y="${midY - 9}" width="${label.length * 6.2 + 10}" height="14" rx="3" fill="#080B12" fill-opacity="0.94" stroke="#202A3A" stroke-width="0.6" />
   <text x="${midX}" y="${midY + 1}" fill="#94A3B8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.5" text-anchor="middle">${label}</text>
 </g>`;
     })
@@ -178,14 +178,14 @@ export function buildArchitectureSvg(params: {
         : n.description;
 
       return `<g transform="translate(${nx}, ${ny})">
-  <rect width="${NODE_W}" height="${NODE_H}" rx="8" fill="#111827" stroke="${meta.hexColor}" stroke-opacity="0.65" stroke-width="1.3" />
-  <circle cx="8" cy="18" r="3" fill="${meta.hexColor}" />
-  <text x="17" y="21" fill="${meta.hexColor}" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="600" font-size="10.5">${escapeXml(meta.label)}</text>
-  <text x="12" y="42" fill="#F8FAFC" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="600" font-size="13">${escapeXml(n.name.slice(0, 27))}</text>
+  <rect width="${NODE_W}" height="${NODE_H}" rx="8" fill="#101623" stroke="${meta.hexColor}" stroke-opacity="0.55" stroke-width="1.2" />
+  <circle cx="12" cy="18" r="3" fill="${meta.hexColor}" />
+  <text x="21" y="21" fill="${meta.hexColor}" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="600" font-size="10.5">${escapeXml(meta.label)}</text>
+  <text x="12" y="42" fill="#F1F5F9" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="600" font-size="13">${escapeXml(n.name.slice(0, 27))}</text>
   <text x="12" y="60" fill="#94A3B8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10">${escapeXml(subtitle.slice(0, 34))}</text>
-  <line x1="10" y1="71" x2="${NODE_W - 10}" y2="71" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1" />
-  <text x="12" y="85" fill="#64748B" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.5">${escapeXml(n.layer)}</text>
-  <text x="${NODE_W - 12}" y="85" fill="#64748B" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.5" text-anchor="end">in ${n.incomingCount} · out ${n.outgoingCount}</text>
+  <line x1="10" y1="72" x2="${NODE_W - 10}" y2="72" stroke="#202A3A" stroke-width="1" />
+  <text x="12" y="86" fill="#64748B" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.5">${escapeXml(n.layer)}</text>
+  <text x="${NODE_W - 12}" y="86" fill="#64748B" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.5" text-anchor="end">in ${n.incomingCount} · out ${n.outgoingCount}</text>
 </g>`;
     })
     .join('\n');
@@ -197,15 +197,15 @@ export function buildArchitectureSvg(params: {
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
     <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-      <circle cx="1" cy="1" r="0.8" fill="#94A3B8" fill-opacity="0.16" />
+      <circle cx="1" cy="1" r="0.9" fill="#202A3A" />
     </pattern>
     ${markerDefs}
   </defs>
-  <rect width="100%" height="100%" fill="#070A12" />
+  <rect width="100%" height="100%" fill="#080B12" />
   <rect y="${HEADER_H}" width="100%" height="${height - HEADER_H}" fill="url(#grid)" />
-  <rect width="100%" height="${HEADER_H}" fill="#0B0F19" />
-  <line x1="0" y1="${HEADER_H}" x2="${width}" y2="${HEADER_H}" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="1" />
-  <text x="24" y="25" fill="#F8FAFC" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="700" font-size="14">${escapeXml(repositoryName)}</text>
+  <rect width="100%" height="${HEADER_H}" fill="#0D111B" />
+  <line x1="0" y1="${HEADER_H}" x2="${width}" y2="${HEADER_H}" stroke="#202A3A" stroke-width="1" />
+  <text x="24" y="25" fill="#F1F5F9" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="700" font-size="14">${escapeXml(repositoryName)}</text>
   <text x="24" y="42" fill="#94A3B8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10">${escapeXml(subtitle)}</text>
   <text x="${width - 24}" y="33" fill="#64748B" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" text-anchor="end">RepoMind · ${timestamp}</text>
   ${groupBoxesSvg}
@@ -246,7 +246,7 @@ async function renderSvgStringToPngDataUrl(
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas 2D context unavailable.');
 
-    ctx.fillStyle = '#070A12';
+    ctx.fillStyle = '#080B12';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.scale(scale, scale);
     ctx.drawImage(img, 0, 0, width, height);
@@ -322,7 +322,7 @@ export async function exportArchitectureGraph(
       const viewport = getViewportForBounds(bounds, imageWidth, imageHeight, 0.2, 1.5, 0.12);
 
       const dataUrl = await toPng(viewportEl, {
-        backgroundColor: '#070A12',
+        backgroundColor: '#080B12',
         width: imageWidth,
         height: imageHeight,
         pixelRatio: 2,

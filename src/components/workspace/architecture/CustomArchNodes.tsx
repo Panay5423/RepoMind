@@ -1,5 +1,7 @@
+import { memo } from 'react';
 import { Handle, Position, type NodeProps } from 'reactflow';
-import { ChevronDown, ChevronRight, ArrowDownRight } from 'lucide-react';
+import { ArrowDownRight, ChevronDown } from 'lucide-react';
+import { motion } from 'motion/react';
 import type { GraphNodeDTO } from '../../../../shared/types.ts';
 import { NODE_KIND_META } from './graphConstants.ts';
 
@@ -21,36 +23,47 @@ export interface GroupContainerRenderData {
   groupKey: string;
 }
 
-export function ArchSymbolNode({ data, selected }: NodeProps<ArchNodeRenderData>) {
+export const ArchSymbolNode = memo(function ArchSymbolNode({
+  data,
+  selected,
+}: NodeProps<ArchNodeRenderData>) {
   const meta = NODE_KIND_META[data.kind] || NODE_KIND_META.file;
   const Icon = meta.icon;
 
-  const activeHighlight =
+  const isSelectedOrFocused =
     selected || data.isFocused || data.isFlowHighlighted || data.isMultiSelected;
 
+  const borderAndGlowClass = isSelectedOrFocused
+    ? 'border-[#60A5FA] bg-[#151D2B] shadow-[0_0_0_1px_rgba(96,165,250,0.42),0_0_24px_rgba(96,165,250,0.14)]'
+    : data.isSearchMatch
+      ? 'border-[#FBBF24] bg-[#151D2B] shadow-[0_0_0_1px_rgba(251,191,36,0.38),0_0_18px_rgba(251,191,36,0.14)]'
+      : data.isConnectedToSelection
+        ? 'border-[#A78BFA]/65 bg-[#121928]'
+        : `${meta.borderClass} ${meta.bgClass} hover:bg-[#151D2B]`;
+
   return (
-    <div
-      className={`w-[244px] rounded-lg border px-3.5 py-2.5 transition-opacity duration-150 ${meta.bgClass} ${
-        activeHighlight
-          ? 'border-blue-400 ring-1 ring-blue-400/60'
-          : data.isSearchMatch
-            ? 'border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(251,191,36,0.18)]'
-            : data.isConnectedToSelection
-              ? 'border-violet-400/70'
-              : meta.borderClass
-      } ${data.isDimmed ? 'opacity-25' : 'opacity-100'}`}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{
+        opacity: data.isDimmed ? 0.24 : 1,
+        scale: 1,
+      }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className={`group w-[248px] rounded-lg border px-3.5 py-2.5 transition-[border-color,background-color,box-shadow] duration-200 ${borderAndGlowClass}`}
     >
       <Handle
         type="target"
         position={Position.Left}
-        className="!bg-blue-400 !w-2 !h-2 !border-0"
+        className="!bg-[#60A5FA] !w-1.5 !h-1.5 !border-0 !-left-[4px] opacity-75 group-hover:opacity-100 transition-opacity"
       />
 
+      {/* Top Metadata Header */}
       <div className="flex items-center justify-between gap-2">
-        <div className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${meta.accentText}`}>
-          <Icon className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">{meta.label}</span>
+        <div className="inline-flex items-center gap-1.5 min-w-0">
+          <Icon className={`w-3.5 h-3.5 shrink-0 ${meta.accentText}`} />
+          <span className="text-[11px] font-medium text-[#94A3B8] truncate">{meta.label}</span>
         </div>
+
         {data.drillDownLevel && (
           <button
             type="button"
@@ -58,8 +71,8 @@ export function ArchSymbolNode({ data, selected }: NodeProps<ArchNodeRenderData>
               e.stopPropagation();
               data.onDrillDown?.(data);
             }}
-            title={`Drill down to ${data.drillDownLevel} level`}
-            className="inline-flex items-center gap-0.5 text-[10px] font-mono text-slate-400 hover:text-blue-300 transition-colors shrink-0"
+            title={`Drill down to ${data.drillDownLevel} architecture`}
+            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono text-[#64748B] hover:text-[#60A5FA] hover:bg-white/[0.04] transition-colors shrink-0"
           >
             <ArrowDownRight className="w-3 h-3" />
             <span>{data.drillDownLevel}</span>
@@ -67,12 +80,17 @@ export function ArchSymbolNode({ data, selected }: NodeProps<ArchNodeRenderData>
         )}
       </div>
 
-      <div className="mt-1 text-sm font-semibold text-white truncate" title={data.name}>
+      {/* Node Title */}
+      <div
+        className="mt-1.5 text-[13px] leading-snug font-semibold text-[#F1F5F9] truncate tracking-[-0.01em]"
+        title={data.name}
+      >
         {data.name}
       </div>
 
+      {/* File Path or Description */}
       <div
-        className="mt-0.5 text-[11px] font-mono text-slate-400 truncate"
+        className="mt-0.5 text-[11px] font-mono text-[#94A3B8] truncate"
         title={data.filePath || data.description}
       >
         {data.filePath
@@ -80,9 +98,10 @@ export function ArchSymbolNode({ data, selected }: NodeProps<ArchNodeRenderData>
           : data.description}
       </div>
 
-      <div className="mt-2 pt-1.5 border-t border-white/[0.06] flex items-center justify-between text-[10px] font-mono text-slate-500 tabular-nums">
-        <span>{data.layer}</span>
-        <span>
+      {/* Footer Hairline */}
+      <div className="mt-2.5 pt-2 border-t border-[#202A3A] flex items-center justify-between text-[10.5px] font-mono text-[#64748B] tabular-nums">
+        <span className="truncate">{data.layer}</span>
+        <span className="shrink-0">
           in {data.incomingCount} · out {data.outgoingCount}
         </span>
       </div>
@@ -90,33 +109,36 @@ export function ArchSymbolNode({ data, selected }: NodeProps<ArchNodeRenderData>
       <Handle
         type="source"
         position={Position.Right}
-        className="!bg-violet-400 !w-2 !h-2 !border-0"
+        className="!bg-[#A78BFA] !w-1.5 !h-1.5 !border-0 !-right-[4px] opacity-75 group-hover:opacity-100 transition-opacity"
       />
-    </div>
+    </motion.div>
   );
-}
+});
 
-export function GroupContainerNode({ data }: NodeProps<GroupContainerRenderData>) {
+export const GroupContainerNode = memo(function GroupContainerNode({
+  data,
+}: NodeProps<GroupContainerRenderData>) {
   return (
-    <div className="w-full h-full rounded-xl border border-white/[0.08] bg-[#0B0F19]/65 px-3 py-2">
+    <div className="w-full h-full rounded-xl border border-[#202A3A] bg-[#0D111B]/80 px-3.5 py-2.5">
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
           data.onToggle(data.groupKey);
         }}
-        className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-white transition-colors"
+        title={data.collapsed ? 'Expand module group' : 'Collapse module group'}
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-[#CBD5E1] hover:text-[#F1F5F9] transition-colors"
       >
-        {data.collapsed ? (
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-        ) : (
-          <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-        )}
+        <ChevronDown
+          className={`w-3.5 h-3.5 text-[#64748B] transition-transform duration-200 ${
+            data.collapsed ? '-rotate-90' : 'rotate-0'
+          }`}
+        />
         <span>{data.label}</span>
-        <span className="font-mono text-[11px] text-slate-500 tabular-nums">
+        <span className="font-mono text-[11px] text-[#64748B] tabular-nums">
           · {data.count}
         </span>
       </button>
     </div>
   );
-}
+});
