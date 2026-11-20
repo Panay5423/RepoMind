@@ -17,10 +17,13 @@ import {
   importGitHubRepository,
   listRepositories,
   reanalyzeRepository,
+  searchRepositoryCode,
   uploadZipRepository,
 } from '../controllers/repoController.ts';
 import {
   createConversation,
+  deleteConversation,
+  explainRepositoryFile,
   generateDoc,
   getBugReports,
   listConversations,
@@ -69,12 +72,15 @@ apiRouter.post(
 );
 apiRouter.get('/repositories/:id', apiLimiter, requireAuth, getRepositoryDetail);
 apiRouter.get('/repositories/:id/file', apiLimiter, requireAuth, getRepositoryFileContent);
+apiRouter.get('/repositories/:id/search', apiLimiter, requireAuth, searchRepositoryCode);
+apiRouter.post('/repositories/:id/explain-file', aiLimiter, requireAuth, explainRepositoryFile);
 apiRouter.post('/repositories/:id/reanalyze', aiLimiter, requireAuth, reanalyzeRepository);
 apiRouter.delete('/repositories/:id', apiLimiter, requireAuth, deleteRepository);
 
 // AI Code Chat & RAG
 apiRouter.get('/repositories/:id/conversations', apiLimiter, requireAuth, listConversations);
 apiRouter.post('/repositories/:id/conversations', apiLimiter, requireAuth, createConversation);
+apiRouter.delete('/conversations/:conversationId', apiLimiter, requireAuth, deleteConversation);
 apiRouter.get('/conversations/:conversationId/messages', apiLimiter, requireAuth, listMessages);
 apiRouter.post('/conversations/:conversationId/messages', aiLimiter, requireAuth, sendChatMessage);
 

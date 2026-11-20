@@ -200,6 +200,15 @@ export interface DocumentationDTO {
   createdAt: string;
 }
 
+export type ChatMode = 'qa' | 'flow' | 'tests' | 'refactor';
+
+export interface FileSearchMatch {
+  filePath: string;
+  language: string;
+  lineNumber: number;
+  lineText: string;
+}
+
 export interface DashboardOverviewDTO {
   totalRepositories: number;
   totalFilesIndexed: number;

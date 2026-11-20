@@ -11,7 +11,7 @@ import { formatGeminiError, generateJson } from './geminiClient.ts';
 import { indexRepositoryFiles, type IndexResult } from '../repository/indexerService.ts';
 import type { RawRepoFile } from '../github/githubService.ts';
 
-interface GeminiAnalysisPayload {
+interface GeminiCoreAnalysisPayload {
   projectOverview: string;
   architectureOverview: string;
   technologyStack: string[];
@@ -186,16 +186,35 @@ const ANALYSIS_SCHEMA = {
 };
 
 function sanitizeGraph(
-  graph: GeminiAnalysisPayload['architectureGraph'],
+  graph: GeminiCoreAnalysisPayload['architectureGraph'],
   validPaths: Set<string>
 ): ArchitectureGraph {
   const validLayers = new Set(['frontend', 'backend', 'api', 'database', 'service', 'config']);
+  const allPaths = Array.from(validPaths);
+
+  const resolveFileRefs = (refs: string[]): string[] => {
+    const out = new Set<string>();
+    for (const raw of refs || []) {
+      const cleaned = String(raw || '').replace(/^\/+/, '');
+      if (!cleaned) continue;
+      if (validPaths.has(cleaned)) {
+        out.add(cleaned);
+      } else {
+        const prefixMatches = allPaths.filter((p) => p.startsWith(cleaned.endsWith('/') ? cleaned : `${cleaned}/`));
+        for (const m of prefixMatches.slice(0, 6)) {
+          out.add(m);
+        }
+      }
+    }
+    return Array.from(out).slice(0, 12);
+  };
+
   const nodes = (graph?.nodes || []).slice(0, 14).map((n, i) => ({
     id: n.id || `node-${i + 1}`,
     label: n.label || `Module ${i + 1}`,
     layer: (validLayers.has(n.layer) ? n.layer : 'service') as ArchitectureGraph['nodes'][0]['layer'],
     description: n.description || '',
-    files: (n.files || []).filter((f) => validPaths.has(f)),
+    files: resolveFileRefs(n.files || []),
     responsibilities: (n.responsibilities || []).slice(0, 5),
   }));
 
@@ -207,15 +226,44 @@ function sanitizeGraph(
       id: e.id || `edge-${i + 1}`,
       source: e.source,
       target: e.target,
-      label: e.label || 'depends on',
+      label: e.label || 'uses',
       relationship: e.relationship || e.label || 'dependency',
     }));
 
   return { nodes, edges };
 }
 
+function buildBaselineGraph(indexResult: IndexResult): ArchitectureGraph {
+  const topDirs = new Map<string, string[]>();
+  for (const f of indexResult.storedFiles) {
+    const seg = f.path.includes('/') ? f.path.split('/')[0] : 'root';
+    const list = topDirs.get(seg) || [];
+    list.push(f.path);
+    topDirs.set(seg, list);
+  }
+  const nodes = Array.from(topDirs.entries())
+    .slice(0, 8)
+    .map(([dir, files], idx) => {
+      const lower = dir.toLowerCase();
+      let layer: ArchitectureGraph['nodes'][0]['layer'] = 'service';
+      if (/client|src|web|app|ui|pages|components/.test(lower)) layer = 'frontend';
+      else if (/route|api|controller/.test(lower)) layer = 'api';
+      else if (/server|backend/.test(lower)) layer = 'backend';
+      else if (/model|db|prisma|schema/.test(lower)) layer = 'database';
+      else if (/config|root/.test(lower)) layer = 'config';
+      return {
+        id: `dir-${idx + 1}`,
+        label: dir === 'root' ? 'Project Root' : dir,
+        layer,
+        description: `Directory containing ${files.length} indexed source file(s).`,
+        files: files.slice(0, 12),
+        responsibilities: [`Contains ${files.slice(0, 3).join(', ')}`],
+      };
+    });
+  return { nodes, edges: [] };
+}
+
 function buildSelectedContext(indexResult: IndexResult): string {
-  // Prioritize README, package/dependency manifests, entrypoints, routes, models, controllers
   const ranked = [...indexResult.storedFiles].sort((a, b) => {
     const score = (p: string, imp: boolean, lines: number) => {
       let s = imp ? 50 : 0;
@@ -229,12 +277,12 @@ function buildSelectedContext(indexResult: IndexResult): string {
   });
 
   const blocks: string[] = [];
-  let budget = 36_000;
-  for (const file of ranked.slice(0, 24)) {
+  let budget = 26_000;
+  for (const file of ranked.slice(0, 16)) {
     const firstChunk = file.chunks[0]?.content || '';
-    const snippet = firstChunk.slice(0, 2400);
+    const snippet = firstChunk.slice(0, 1900);
     const wrapped = wrapUntrustedCode(file.path, snippet);
-    if (budget - wrapped.length < 0 && blocks.length >= 6) break;
+    if (budget - wrapped.length < 0 && blocks.length >= 4) break;
     blocks.push(wrapped);
     budget -= wrapped.length;
   }
@@ -254,9 +302,34 @@ export async function runRepositoryAnalysisPipeline(
   };
 
   try {
-    await updateProgress(10, 'Fetching & filtering source files', 'indexing');
+    await updateProgress(12, 'Parsing files & building directory tree', 'indexing');
     const indexResult = await indexRepositoryFiles(repositoryId, rawFiles, async (p, stage) => {
       await updateProgress(p, stage, 'indexing');
+    });
+
+    // Save deterministic baseline analysis & static bugs right away so workspace tabs work immediately
+    await db.replaceBugReports(repositoryId, indexResult.staticFindings);
+    await db.upsertAnalysis(repositoryId, {
+      projectOverview: 'Indexing complete. Generating AI architectural summary...',
+      architectureOverview: '',
+      technologyStack: [indexResult.primaryLanguage, ...indexResult.frameworks].filter(Boolean),
+      frameworks: indexResult.frameworks,
+      importantFiles: indexResult.storedFiles
+        .filter((f) => f.isImportant)
+        .slice(0, 8)
+        .map((f) => ({ path: f.path, reason: `${f.language} (${f.lines} lines)` })),
+      importantModules: [],
+      dependencies: indexResult.dependencies,
+      complexityIndicators: indexResult.complexityIndicators,
+      architectureGraph: buildBaselineGraph(indexResult),
+      healthReport: {
+        overallEstimate: 75,
+        disclaimer:
+          'Preliminary deterministic structure metrics. Full AI heuristic assessment is currently running.',
+        breakdown: [],
+        prioritizedImprovements: [],
+      },
+      directoryTree: indexResult.directoryTree,
     });
 
     await db.updateRepository(repositoryId, {
@@ -266,65 +339,54 @@ export async function runRepositoryAnalysisPipeline(
       totalLines: indexResult.totalLines,
       totalBytes: indexResult.totalBytes,
       status: 'analyzing',
-      progress: 55,
-      progressStage: 'Analyzing architecture, modules & code health with Gemini',
+      progress: 60,
+      progressStage: 'Generating architectural map & health assessment with Gemini',
     });
 
     const validPaths = new Set(indexResult.storedFiles.map((f) => f.path));
     const manifestList = indexResult.storedFiles
-      .slice(0, 220)
-      .map((f) => `- ${f.path} (${f.language}, ${f.lines} lines, complexity=${f.complexityScore})`)
+      .slice(0, 160)
+      .map((f) => `- ${f.path} (${f.language}, ${f.lines}L)`)
       .join('\n');
 
     const codeContext = buildSelectedContext(indexResult);
     const depSummary = indexResult.dependencies
-      .slice(0, 40)
+      .slice(0, 35)
       .map((d) => `${d.name}@${d.version} (${d.category})`)
       .join(', ');
 
-    const prompt = `Analyze the following software repository based strictly on the verified manifest and file excerpts below.
+    const prompt = `Analyze this repository concisely based ONLY on the verified manifest and source excerpts below.
 
 <repository_manifest total_files="${indexResult.storedFiles.length}" total_lines="${indexResult.totalLines}">
 ${manifestList}
 </repository_manifest>
 
-<detected_frameworks>
-${indexResult.frameworks.join(', ') || 'None automatically detected'}
-</detected_frameworks>
-
-<detected_dependencies>
-${depSummary || 'None detected'}
-</detected_dependencies>
-
-<complexity_metrics>
-Average lines/file: ${indexResult.complexityIndicators.averageFileLines}
-Max file lines: ${indexResult.complexityIndicators.maxFileLines}
-TODO/FIXME count: ${indexResult.complexityIndicators.todoCount}
-High complexity files: ${indexResult.complexityIndicators.highComplexityFiles.map((f) => `${f.path} (${f.lines}L)`).join(', ')}
-</complexity_metrics>
+<detected_frameworks>${indexResult.frameworks.join(', ') || 'None'}</detected_frameworks>
+<detected_dependencies>${depSummary || 'None'}</detected_dependencies>
 
 <representative_source_files>
 ${codeContext}
 </representative_source_files>
 
-Produce a comprehensive, grounded architectural analysis:
-1. "projectOverview": Clear 2-3 paragraph explanation of what the software does and how it is structured.
-2. "architectureOverview": Concrete technical description of request flow, state/data handling, and separation of concerns.
-3. "technologyStack": Concise list of actual languages, frameworks, databases, and libraries observed.
-4. "importantFiles": 5-10 key files ONLY from <repository_manifest> with reasons.
-5. "importantModules": 4-8 major modules with their real paths, roles, responsibilities, and complexity ('low' | 'medium' | 'high').
-6. "architectureGraph": A clean, connected directed graph of 5-12 logical architectural nodes (layers: frontend, backend, api, database, service, config) and edges showing real data/dependency flow. Every path in node.files MUST exist in <repository_manifest>.
-7. "healthReport": Provide an explainable heuristic score (0-100) across the 6 exact categories: "Code Organization", "Maintainability", "Complexity", "Documentation", "Issue Risk", "Dependency Health", with concrete evidence in "basis" and actionable "recommendation", plus 3-5 "prioritizedImprovements".
-8. "potentialIssues": Identify 3-8 concrete potential bugs, error-prone code, duplication, or quality issues grounded in the observed code excerpts. Every filePath MUST exist in <repository_manifest> and include accurate line numbers when visible.`;
+Return concise JSON matching the schema:
+- projectOverview: 2 clear paragraphs describing what this repository does.
+- architectureOverview: 1-2 paragraphs describing request/data flow and separation of concerns.
+- technologyStack: list of observed languages, frameworks, and tools.
+- importantFiles: 3-8 key paths strictly from <repository_manifest>.
+- importantModules: 2-6 major modules with real paths, role, responsibilities, and complexity ('low'|'medium'|'high').
+- architectureGraph: 3-10 nodes (layers: frontend, backend, api, database, service, config) and edges connecting them; node.files must only contain paths from <repository_manifest>.
+- healthReport: explainable heuristic scores (0-100) for all 6 categories ("Code Organization", "Maintainability", "Complexity", "Documentation", "Issue Risk", "Dependency Health") + 3 prioritizedImprovements.
+- potentialIssues: 1-6 potential issues grounded in <representative_source_files> with real filePath and line numbers when visible.`;
 
-    const aiResult = await generateJson<GeminiAnalysisPayload>({
+    const aiResult = await generateJson<GeminiCoreAnalysisPayload>({
       prompt,
-      systemInstruction: `${SYSTEM_SECURITY_PREAMBLE}\nYou are a principal software architect performing grounded static codebase analysis.`,
+      systemInstruction: `${SYSTEM_SECURITY_PREAMBLE}\nYou are a principal software architect performing concise, grounded codebase analysis.`,
       responseSchema: ANALYSIS_SCHEMA,
       thinkingLevel: ThinkingLevel.LOW,
+      timeoutMs: 45_000,
     });
 
-    await updateProgress(85, 'Finalizing architecture graph, bug findings & health report');
+    await updateProgress(88, 'Finalizing architecture graph, bug findings & health report');
 
     const groundedImportantFiles = (aiResult.importantFiles || []).filter((f) =>
       validPaths.has(f.path)
@@ -338,6 +400,8 @@ Produce a comprehensive, grounded architectural analysis:
     }));
 
     const sanitizedGraph = sanitizeGraph(aiResult.architectureGraph, validPaths);
+    const finalGraph =
+      sanitizedGraph.nodes.length > 0 ? sanitizedGraph : buildBaselineGraph(indexResult);
 
     const defaultCategories: HealthScoreReport['breakdown'][number]['category'][] = [
       'Code Organization',
@@ -352,9 +416,10 @@ Produce a comprehensive, grounded architectural analysis:
       const found = rawBreakdown.find((b) => b.category === cat);
       return {
         category: cat,
-        score: Math.max(10, Math.min(100, Math.round(found?.score ?? 72))),
+        score: Math.max(10, Math.min(100, Math.round(found?.score ?? 74))),
         basis: found?.basis || 'Evaluated from indexed file layout and static complexity metrics.',
-        recommendation: found?.recommendation || 'Continue keeping modules small and well-documented.',
+        recommendation:
+          found?.recommendation || 'Continue keeping modules focused and well-documented.',
       };
     });
 
@@ -389,14 +454,13 @@ Produce a comprehensive, grounded architectural analysis:
       importantModules: groundedModules,
       dependencies: indexResult.dependencies,
       complexityIndicators: indexResult.complexityIndicators,
-      architectureGraph: sanitizedGraph,
+      architectureGraph: finalGraph,
       healthReport,
       directoryTree: indexResult.directoryTree,
     };
 
     await db.upsertAnalysis(repositoryId, analysisData);
 
-    // Combine verified static findings + AI potential issues
     const validCategories = new Set(['bug', 'security', 'duplication', 'quality', 'dependency']);
     const validSeverities = new Set(['critical', 'high', 'medium', 'low', 'info']);
 
@@ -406,9 +470,13 @@ Produce a comprehensive, grounded architectural analysis:
       .filter((issue) => validPaths.has(issue.filePath))
       .map((issue) => ({
         title: issue.title,
-        category: (validCategories.has(issue.category) ? issue.category : 'quality') as BugFindingDTO['category'],
+        category: (validCategories.has(issue.category)
+          ? issue.category
+          : 'quality') as BugFindingDTO['category'],
         origin: 'ai_potential_issue',
-        severity: (validSeverities.has(issue.severity) ? issue.severity : 'medium') as BugFindingDTO['severity'],
+        severity: (validSeverities.has(issue.severity)
+          ? issue.severity
+          : 'medium') as BugFindingDTO['severity'],
         filePath: issue.filePath,
         startLine: issue.startLine,
         endLine: issue.endLine,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Copy, Download, Edit3, Eye, FileText, RefreshCw, Save } from 'lucide-react';
+import { Copy, Download, Edit3, Eye, FileText, RefreshCw, Save, Sparkles } from 'lucide-react';
 import type { DocType, DocumentationDTO } from '../../../shared/types.ts';
 import { api } from '../../lib/api.ts';
 import { useToast } from '../../context/ToastContext.tsx';
@@ -31,6 +31,7 @@ export function DocsTab({
   const [viewMode, setViewMode] = useState<'preview' | 'edit'>('preview');
   const [draftContent, setDraftContent] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const { notify } = useToast();
 
@@ -53,6 +54,34 @@ export function DocsTab({
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Documentation generation failed.', 'error');
     } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleGenerateMissing = async () => {
+    const missing = DOC_TYPES.filter((d) => !initialDocs.some((doc) => doc.type === d.type));
+    if (missing.length === 0) {
+      notify('All 6 documentation suites are already generated.', 'info');
+      return;
+    }
+    setGenerating(true);
+    let updated = [...initialDocs];
+    try {
+      for (let i = 0; i < missing.length; i++) {
+        const target = missing[i];
+        setBatchProgress(`Generating ${target.label} (${i + 1}/${missing.length})...`);
+        const res = await api.docs.generate(repositoryId, target.type);
+        updated = [...updated.filter((d) => d.type !== target.type), res.doc];
+        onDocsUpdated(updated);
+        if (target.type === selectedType) {
+          setDraftContent(res.doc.content);
+        }
+      }
+      notify(`Generated ${missing.length} documentation suite(s).`, 'success');
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'Batch generation stopped.', 'error');
+    } finally {
+      setBatchProgress(null);
       setGenerating(false);
     }
   };
@@ -91,39 +120,64 @@ export function DocsTab({
     URL.revokeObjectURL(url);
   };
 
+  const missingCount = DOC_TYPES.filter(
+    (item) => !initialDocs.some((d) => d.type === item.type)
+  ).length;
+  const wordCount = draftContent.trim() ? draftContent.trim().split(/\s+/).length : 0;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Doc Type Selector */}
-      <aside className="lg:col-span-3 rounded-xl border border-white/[0.08] bg-[#111827] p-3 h-fit space-y-1">
-        <p className="px-3 py-2 text-xs font-semibold text-slate-400">Documentation Suites</p>
-        {DOC_TYPES.map((item) => {
-          const exists = initialDocs.some((d) => d.type === item.type);
-          return (
-            <button
-              key={item.type}
-              type="button"
-              onClick={() => setSelectedType(item.type)}
-              className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
-                selectedType === item.type
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-300 hover:bg-white/[0.04] hover:text-white'
-              }`}
-            >
-              <span className="truncate">{item.label}</span>
-              <span
-                className={`text-[10px] font-mono ${
+      <aside className="lg:col-span-3 rounded-xl border border-white/[0.08] bg-[#111827] p-3 h-fit space-y-2">
+        <div className="space-y-1">
+          <p className="px-3 py-2 text-xs font-semibold text-slate-400">
+            Documentation Suites ({initialDocs.length}/{DOC_TYPES.length})
+          </p>
+          {DOC_TYPES.map((item) => {
+            const exists = initialDocs.some((d) => d.type === item.type);
+            return (
+              <button
+                key={item.type}
+                type="button"
+                onClick={() => setSelectedType(item.type)}
+                className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
                   selectedType === item.type
-                    ? 'text-blue-100'
-                    : exists
-                    ? 'text-emerald-400'
-                    : 'text-slate-500'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-300 hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
-                {exists ? 'Ready' : 'New'}
+                <span className="truncate">{item.label}</span>
+                <span
+                  className={`text-[10px] font-mono ${
+                    selectedType === item.type
+                      ? 'text-blue-100'
+                      : exists
+                      ? 'text-emerald-400'
+                      : 'text-slate-500'
+                  }`}
+                >
+                  {exists ? 'Ready' : 'New'}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {missingCount > 0 && (
+          <div className="pt-2 border-t border-white/[0.08]">
+            <button
+              type="button"
+              disabled={generating}
+              onClick={() => void handleGenerateMissing()}
+              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 text-xs font-medium text-blue-300 transition-colors disabled:opacity-50"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>
+                {batchProgress || `Generate ${missingCount} Missing`}
               </span>
             </button>
-          );
-        })}
+          </div>
+        )}
       </aside>
 
       {/* Editor & Preview */}
@@ -153,6 +207,11 @@ export function DocsTab({
                 <span>Edit</span>
               </button>
             </div>
+            {wordCount > 0 && (
+              <span className="hidden sm:inline text-[11px] font-mono text-slate-500 tabular-nums">
+                {wordCount} words
+              </span>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">

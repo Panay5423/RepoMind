@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 
-type PreviewTab = 'chat' | 'architecture' | 'bugs';
+type PreviewTab = 'chat' | 'explorer' | 'architecture' | 'bugs';
 
 export function LandingPage() {
   const { user, demoLogin } = useAuth();
@@ -140,6 +140,8 @@ export function LandingPage() {
             <div className="mt-8 pt-6 border-t border-white/[0.08] flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-400">
               <span>Vector RAG Indexing</span>
               <span aria-hidden="true" className="text-slate-600">·</span>
+              <span>Code Search & Explain File</span>
+              <span aria-hidden="true" className="text-slate-600">·</span>
               <span>Static + AI Bug Inspection</span>
               <span aria-hidden="true" className="text-slate-600">·</span>
               <span>Interactive Architecture Maps</span>
@@ -189,11 +191,11 @@ export function LandingPage() {
                 One workspace for deep code comprehension
               </h2>
               <p className="mt-2 text-slate-400 max-w-2xl">
-                Switch between semantic code search, live module architecture diagrams, and verified
-                static + AI code inspections.
+                Switch between semantic code chat, full-text code exploration, live module
+                architecture diagrams, and verified static + AI code inspections.
               </p>
             </div>
-            <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-[#111827] border border-white/[0.08] shrink-0">
+            <div className="inline-flex flex-wrap items-center gap-1 p-1 rounded-lg bg-[#111827] border border-white/[0.08] shrink-0">
               <button
                 type="button"
                 onClick={() => setPreviewTab('chat')}
@@ -204,6 +206,17 @@ export function LandingPage() {
                 }`}
               >
                 Grounded AI Chat
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewTab('explorer')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                  previewTab === 'explorer'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Code Explorer
               </button>
               <button
                 type="button"
@@ -278,6 +291,44 @@ export function LandingPage() {
                       <span className="text-slate-600">·</span>
                       <span>src/routes/sessions.ts (L14-39)</span>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {previewTab === 'explorer' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-white/[0.08]">
+                <div className="lg:col-span-4 p-5 space-y-3 bg-[#0B0F19]/40">
+                  <div className="flex items-center justify-between text-xs text-slate-400">
+                    <span className="font-medium">Full-Text Code Search</span>
+                    <span className="font-mono text-blue-400">3 matches</span>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-[#0B0F19] px-3 py-2 text-xs font-mono text-slate-200">
+                    requireAuth
+                  </div>
+                  <div className="space-y-1.5 font-mono text-xs">
+                    <div className="p-2.5 rounded-lg border border-blue-500/30 bg-blue-500/[0.06] text-slate-200">
+                      <div className="text-blue-400">src/middleware/auth.ts:18</div>
+                      <div className="text-slate-400 mt-0.5 truncate">export async function requireAuth(req, res, next)</div>
+                    </div>
+                    <div className="p-2.5 rounded-lg border border-white/[0.06] bg-[#0B0F19] text-slate-300">
+                      <div className="text-slate-200">src/routes/repos.ts:9</div>
+                      <div className="text-slate-500 mt-0.5 truncate">router.use('/repos', requireAuth);</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="lg:col-span-8 p-6 space-y-4">
+                  <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                    <span className="font-mono text-xs text-slate-200">src/middleware/auth.ts</span>
+                    <span className="text-xs font-medium text-blue-400">Explain File · Ask in Chat</span>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.06] bg-[#0B0F19] p-4 font-mono text-xs text-slate-300 space-y-1">
+                    <div><span className="text-slate-600 mr-4">18</span>export async function requireAuth(req, res, next) {'{'}</div>
+                    <div className="bg-blue-500/10 text-blue-200 px-1 -mx-1 rounded"><span className="text-blue-400 mr-4">19</span>  const token = req.headers.authorization?.split(' ')[1];</div>
+                    <div><span className="text-slate-600 mr-4">20</span>  if (!token) return res.status(401).json({'{'} error: 'Unauthorized' {'}'});</div>
+                    <div><span className="text-slate-600 mr-4">21</span>  req.user = verifyJwt(token);</div>
+                    <div><span className="text-slate-600 mr-4">22</span>  return next();</div>
+                    <div><span className="text-slate-600 mr-4">23</span>{'}'}</div>
                   </div>
                 </div>
               </div>
@@ -369,23 +420,23 @@ export function LandingPage() {
           <div className="md:col-span-7 rounded-xl border border-white/[0.08] bg-[#111827] p-7">
             <MessageSquareCode className="w-5 h-5 text-blue-400 mb-4" />
             <h3 className="font-display text-lg font-semibold text-white">
-              Source-Grounded AI Code Chat
+              Source-Grounded AI Code Chat (4 Modes)
             </h3>
             <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-              Ask architectural questions, trace authentication flows, or locate database queries.
-              RepoMind retrieves top-ranked chunks using Gemini embeddings and lexical matching,
-              returning answers with verified file paths and line numbers.
+              Switch between Q&amp;A, Trace Flow, Write Tests, and Refactor modes. RepoMind retrieves
+              top-ranked chunks using Gemini embeddings and lexical matching, returning answers with
+              verified file paths and line numbers.
             </p>
           </div>
 
           <div className="md:col-span-5 rounded-xl border border-white/[0.08] bg-[#111827] p-7">
             <Layers className="w-5 h-5 text-violet-400 mb-4" />
             <h3 className="font-display text-lg font-semibold text-white">
-              Interactive Architecture Graph
+              Interactive Architecture &amp; Code Explorer
             </h3>
             <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-              Inspect frontend modules, backend routers, APIs, database schemas, and external
-              services on an interactive zoomable canvas generated from your actual files.
+              Browse directory trees, run instant full-text search across every source file, trigger
+              one-click Explain File breakdowns, and explore interactive module graphs.
             </p>
           </div>
 
@@ -394,18 +445,18 @@ export function LandingPage() {
             <h3 className="font-display text-lg font-semibold text-white">Bug Detective</h3>
             <p className="mt-2 text-sm text-slate-400 leading-relaxed">
               Separates verified static pattern detections (exposed secrets, unsafe eval/exec) from
-              AI-identified potential bugs and duplication risks.
+              AI-identified potential bugs, with severity filters and Ask AI Fix handoff.
             </p>
           </div>
 
           <div className="md:col-span-4 rounded-xl border border-white/[0.08] bg-[#111827] p-7">
             <FileText className="w-5 h-5 text-blue-400 mb-4" />
             <h3 className="font-display text-lg font-semibold text-white">
-              Documentation Generator
+              Documentation &amp; Audit Export
             </h3>
             <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-              Produce READMEs, API references, architecture overviews, installation guides, and
-              environment setup docs—then edit, preview, and download Markdown.
+              Batch-generate READMEs, API references, architecture overviews, and setup guides, or
+              download a complete Markdown audit report of your repository.
             </p>
           </div>
 

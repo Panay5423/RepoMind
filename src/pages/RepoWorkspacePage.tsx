@@ -3,6 +3,8 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Activity,
   Bug,
+  Code2,
+  Download,
   ExternalLink,
   FileText,
   Layers,
@@ -21,14 +23,33 @@ import { api } from '../lib/api.ts';
 import { useToast } from '../context/ToastContext.tsx';
 import { WorkspaceLayout } from '../components/WorkspaceLayout.tsx';
 import { OverviewTab } from '../components/workspace/OverviewTab.tsx';
-import { ChatTab } from '../components/workspace/ChatTab.tsx';
+import { CodeExplorerTab } from '../components/workspace/CodeExplorerTab.tsx';
+import { ChatTab, type PendingChatPrompt } from '../components/workspace/ChatTab.tsx';
 import { ArchitectureTab } from '../components/workspace/ArchitectureTab.tsx';
 import { BugsTab } from '../components/workspace/BugsTab.tsx';
 import { DocsTab } from '../components/workspace/DocsTab.tsx';
 import { HealthTab } from '../components/workspace/HealthTab.tsx';
 import { CodeViewerModal } from '../components/workspace/CodeViewerModal.tsx';
+import type { ChatMode } from '../../shared/types.ts';
 
-type WorkspaceTab = 'overview' | 'chat' | 'architecture' | 'bugs' | 'docs' | 'health';
+type WorkspaceTab =
+  | 'overview'
+  | 'explorer'
+  | 'chat'
+  | 'architecture'
+  | 'bugs'
+  | 'docs'
+  | 'health';
+
+const VALID_TABS = new Set<WorkspaceTab>([
+  'overview',
+  'explorer',
+  'chat',
+  'architecture',
+  'bugs',
+  'docs',
+  'health',
+]);
 
 export function RepoWorkspacePage() {
   const { id } = useParams<{ id: string }>();
@@ -36,9 +57,11 @@ export function RepoWorkspacePage() {
   const navigate = useNavigate();
   const { notify } = useToast();
 
-  const tabParam = (searchParams.get('tab') || 'overview') as WorkspaceTab;
+  const rawTab = searchParams.get('tab') as WorkspaceTab | null;
+  const tabFromUrl: WorkspaceTab = rawTab && VALID_TABS.has(rawTab) ? rawTab : 'overview';
   const convParam = searchParams.get('conv');
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>(tabParam);
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>(tabFromUrl);
+  const [pendingPrompt, setPendingPrompt] = useState<PendingChatPrompt | null>(null);
 
   const [repository, setRepository] = useState<RepositoryDTO | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisDTO | null>(null);
@@ -48,12 +71,15 @@ export function RepoWorkspacePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Source Code Viewer Modal
   const [viewerTarget, setViewerTarget] = useState<{
     path: string;
     startLine?: number;
     endLine?: number;
   } | null>(null);
+
+  useEffect(() => {
+    setActiveTab(tabFromUrl);
+  }, [tabFromUrl]);
 
   const loadDetail = useCallback(async () => {
     if (!id) return;
@@ -73,22 +99,28 @@ export function RepoWorkspacePage() {
   }, [id]);
 
   useEffect(() => {
+    setLoading(true);
     void loadDetail();
   }, [loadDetail]);
 
-  // Poll while indexing/analyzing
   useEffect(() => {
     if (!repository) return;
     if (repository.status !== 'indexing' && repository.status !== 'analyzing') return;
     const timer = setInterval(() => {
       void loadDetail();
-    }, 2200);
+    }, 2000);
     return () => clearInterval(timer);
   }, [repository?.status, loadDetail]);
 
   const handleTabChange = (tab: WorkspaceTab) => {
     setActiveTab(tab);
     setSearchParams({ tab });
+  };
+
+  const handleAskAI = (prompt: string, mode: ChatMode = 'qa') => {
+    setPendingPrompt({ text: prompt, mode, nonce: Date.now() });
+    setActiveTab('chat');
+    setSearchParams({ tab: 'chat' });
   };
 
   const handleReanalyze = async () => {
@@ -102,18 +134,76 @@ export function RepoWorkspacePage() {
     }
   };
 
+  const handleExportFullReport = () => {
+    if (!repository || !analysis) return;
+    const sections = [
+      `# RepoMind Codebase Audit Report: ${repository.fullName}`,
+      `Generated: ${new Date().toISOString()}`,
+      `Primary Language: ${repository.primaryLanguage} | Files: ${repository.fileCount} | Lines: ${repository.totalLines}`,
+      '',
+      `## Project Overview`,
+      analysis.projectOverview,
+      '',
+      `## Architecture Summary`,
+      analysis.architectureOverview || 'N/A',
+      '',
+      `## Technology Stack`,
+      analysis.technologyStack.map((t) => `- ${t}`).join('\n'),
+      '',
+      `## Important Modules`,
+      analysis.importantModules
+        .map(
+          (m) =>
+            `### ${m.name} (\`${m.path}\`)\n${m.role}\n${m.responsibilities
+              .map((r) => `- ${r}`)
+              .join('\n')}`
+        )
+        .join('\n\n'),
+      '',
+      `## Health Score Estimate (${analysis.healthReport.overallEstimate}/100)`,
+      `> ${analysis.healthReport.disclaimer}`,
+      '',
+      ...analysis.healthReport.breakdown.map(
+        (b) => `- **${b.category}**: ${b.score}/100 — ${b.basis} (Action: ${b.recommendation})`
+      ),
+      '',
+      `## Bug Detective Findings (${bugs.length})`,
+      ...bugs.map(
+        (f) =>
+          `### [${f.severity.toUpperCase()}] ${f.title}\n- Origin: ${f.origin}\n- Location: \`${
+            f.filePath
+          }${f.startLine ? `:${f.startLine}` : ''}\`\n- Explanation: ${
+            f.explanation
+          }\n- Suggested Fix: ${f.suggestedFix}`
+      ),
+    ];
+
+    const blob = new Blob([sections.join('\n')], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${repository.name}-repomind-report.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    notify('Exported full Markdown audit report.', 'success');
+  };
+
   const openFile = (path: string, startLine?: number, endLine?: number) => {
     setViewerTarget({ path, startLine, endLine });
   };
 
   const tabs: Array<{ id: WorkspaceTab; label: string; icon: typeof LayoutGrid }> = [
-    { id: 'overview', label: 'Overview & Files', icon: LayoutGrid },
+    { id: 'overview', label: 'Overview', icon: LayoutGrid },
+    { id: 'explorer', label: `Code Explorer (${files.length})`, icon: Code2 },
     { id: 'chat', label: 'AI Code Chat', icon: MessageSquareCode },
     { id: 'architecture', label: 'Architecture Graph', icon: Layers },
     { id: 'bugs', label: `Bug Detective (${bugs.length})`, icon: Bug },
-    { id: 'docs', label: 'Documentation', icon: FileText },
+    { id: 'docs', label: `Documentation (${docs.length})`, icon: FileText },
     { id: 'health', label: 'Health Score', icon: Activity },
   ];
+
+  const langPalette = ['bg-blue-500', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-slate-500'];
+  const workspaceReady = files.length > 0 || Boolean(analysis) || repository?.status === 'completed';
 
   return (
     <WorkspaceLayout
@@ -125,6 +215,16 @@ export function RepoWorkspacePage() {
       actions={
         repository && (
           <div className="flex items-center gap-2">
+            {analysis && (
+              <button
+                type="button"
+                onClick={handleExportFullReport}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/[0.04] whitespace-nowrap"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Export Report</span>
+              </button>
+            )}
             {repository.githubUrl && (
               <a
                 href={repository.githubUrl}
@@ -139,7 +239,7 @@ export function RepoWorkspacePage() {
             <button
               type="button"
               onClick={() => void handleReanalyze()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-xs font-medium text-slate-200 hover:bg-white/[0.04] whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white whitespace-nowrap"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Re-analyze</span>
@@ -166,28 +266,66 @@ export function RepoWorkspacePage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Header Metadata Bar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="font-display text-2xl font-bold tracking-tight text-white">
-                {repository.fullName}
-              </h1>
-              <div className="mt-1 flex flex-wrap items-center gap-2.5 text-xs text-slate-400 font-mono">
-                <span>{repository.primaryLanguage}</span>
-                <span aria-hidden="true">·</span>
-                <span className="tabular-nums">{repository.fileCount} files</span>
-                <span aria-hidden="true">·</span>
-                <span className="tabular-nums">{repository.totalLines.toLocaleString()} lines</span>
-                {typeof repository.healthScore === 'number' && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span className="text-slate-200 tabular-nums">
-                      Health estimate: {repository.healthScore}/100
-                    </span>
-                  </>
-                )}
+          {/* Header Metadata Bar + Language Ratio Strip */}
+          <div className="rounded-xl border border-white/[0.08] bg-[#111827] p-5 space-y-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h1 className="font-display text-2xl font-bold tracking-tight text-white">
+                  {repository.fullName}
+                </h1>
+                <div className="mt-1 flex flex-wrap items-center gap-2.5 text-xs text-slate-400 font-mono">
+                  <span>{repository.primaryLanguage}</span>
+                  <span aria-hidden="true">·</span>
+                  <span className="tabular-nums">{repository.fileCount} files</span>
+                  <span aria-hidden="true">·</span>
+                  <span className="tabular-nums">{repository.totalLines.toLocaleString()} lines</span>
+                  {analysis && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <span className="tabular-nums">{analysis.dependencies.length} deps</span>
+                    </>
+                  )}
+                  {typeof repository.healthScore === 'number' && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <span className="text-slate-200 tabular-nums">
+                        Health estimate: {repository.healthScore}/100
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
+              {repository.description && (
+                <p className="text-xs text-slate-400 max-w-md">{repository.description}</p>
+              )}
             </div>
+
+            {repository.languages.length > 0 && (
+              <div className="space-y-2 pt-1">
+                <div className="h-1.5 w-full rounded-full bg-[#0B0F19] overflow-hidden flex">
+                  {repository.languages.slice(0, 5).map((lang, idx) => (
+                    <div
+                      key={lang.language}
+                      className={langPalette[idx % langPalette.length]}
+                      style={{ width: `${Math.max(lang.percentage, 2)}%` }}
+                      title={`${lang.language}: ${lang.percentage}%`}
+                    />
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-mono text-slate-400">
+                  {repository.languages.slice(0, 5).map((lang, idx) => (
+                    <span key={lang.language} className="inline-flex items-center gap-1.5">
+                      <span
+                        className={`w-2 h-2 rounded-xs ${langPalette[idx % langPalette.length]}`}
+                      />
+                      <span>
+                        {lang.language} {lang.percentage}%
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Active Processing Progress */}
@@ -252,9 +390,9 @@ export function RepoWorkspacePage() {
           </div>
 
           {/* Tab Viewports */}
-          {!analysis && repository.status !== 'completed' ? (
+          {!workspaceReady ? (
             <div className="rounded-xl border border-white/[0.08] bg-[#111827] p-12 text-center text-sm text-slate-400">
-              Waiting for repository indexing and Gemini architectural analysis to complete...
+              Indexing source files and building repository tree...
             </div>
           ) : (
             <>
@@ -266,11 +404,20 @@ export function RepoWorkspacePage() {
                   onOpenFile={(p) => openFile(p)}
                 />
               )}
+              {activeTab === 'explorer' && (
+                <CodeExplorerTab
+                  repositoryId={repository.id}
+                  directoryTree={analysis?.directoryTree || []}
+                  files={files}
+                  onAskAI={handleAskAI}
+                />
+              )}
               {activeTab === 'chat' && (
                 <ChatTab
                   repositoryId={repository.id}
                   repositoryName={repository.fullName}
                   initialConversationId={convParam}
+                  pendingPrompt={pendingPrompt}
                   onOpenFile={openFile}
                 />
               )}
@@ -278,14 +425,17 @@ export function RepoWorkspacePage() {
                 <ArchitectureTab
                   graph={analysis.architectureGraph}
                   onOpenFile={(p) => openFile(p)}
+                  onAskAI={handleAskAI}
                 />
               )}
               {activeTab === 'bugs' && (
                 <BugsTab
                   repositoryId={repository.id}
+                  repositoryName={repository.fullName}
                   initialFindings={bugs}
                   onFindingsUpdated={setBugs}
                   onOpenFile={openFile}
+                  onAskAI={handleAskAI}
                 />
               )}
               {activeTab === 'docs' && (

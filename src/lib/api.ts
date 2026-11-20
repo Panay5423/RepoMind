@@ -1,10 +1,12 @@
 import type {
   AnalysisDTO,
   BugFindingDTO,
+  ChatMode,
   ConversationDTO,
   DashboardOverviewDTO,
   DocType,
   DocumentationDTO,
+  FileSearchMatch,
   MessageDTO,
   PublicUser,
   RepositoryDTO,
@@ -140,6 +142,18 @@ export const api = {
         complexityScore: number;
         content: string;
       }>(`/api/repositories/${id}/file?path=${encodeURIComponent(filePath)}`),
+    searchCode: (id: string, q: string) =>
+      request<{ matches: FileSearchMatch[] }>(
+        `/api/repositories/${id}/search?q=${encodeURIComponent(q)}`
+      ),
+    explainFile: (id: string, filePath: string) =>
+      request<{ filePath: string; explanationMarkdown: string }>(
+        `/api/repositories/${id}/explain-file`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ filePath }),
+        }
+      ),
     reanalyze: (id: string) =>
       request<{ repository: RepositoryDTO }>(`/api/repositories/${id}/reanalyze`, {
         method: 'POST',
@@ -158,14 +172,18 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ title }),
       }),
+    deleteConversation: (conversationId: string) =>
+      request<{ ok: boolean }>(`/api/conversations/${conversationId}`, {
+        method: 'DELETE',
+      }),
     listMessages: (conversationId: string) =>
       request<{ messages: MessageDTO[] }>(`/api/conversations/${conversationId}/messages`),
-    sendMessage: (conversationId: string, content: string) =>
+    sendMessage: (conversationId: string, content: string, mode: ChatMode = 'qa') =>
       request<{ userMessage: MessageDTO; assistantMessage: MessageDTO }>(
         `/api/conversations/${conversationId}/messages`,
         {
           method: 'POST',
-          body: JSON.stringify({ content }),
+          body: JSON.stringify({ content, mode }),
         }
       ),
   },

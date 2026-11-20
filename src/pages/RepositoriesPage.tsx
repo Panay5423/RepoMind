@@ -41,6 +41,7 @@ export function RepositoriesPage() {
   const [importing, setImporting] = useState(false);
   const [zipFile, setZipFile] = useState<File | null>(null);
   const [zipName, setZipName] = useState('');
+  const [draggingZip, setDraggingZip] = useState(false);
 
   // GitHub OAuth Repo Picker
   const [ghStatus, setGhStatus] = useState<{ oauthConfigured: boolean; connected: boolean } | null>(
@@ -375,10 +376,33 @@ export function RepositoriesPage() {
                     <label className="block text-xs font-medium text-slate-300 mb-1.5">
                       Source Archive (.zip, max 25 MB)
                     </label>
-                    <label className="flex items-center gap-3 w-full rounded-lg border border-dashed border-white/20 bg-[#0B0F19] px-4 py-2.5 text-sm text-slate-300 cursor-pointer hover:border-blue-500/60">
+                    <label
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDraggingZip(true);
+                      }}
+                      onDragLeave={() => setDraggingZip(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDraggingZip(false);
+                        const dropped = e.dataTransfer.files?.[0];
+                        if (dropped && dropped.name.toLowerCase().endsWith('.zip')) {
+                          setZipFile(dropped);
+                        } else {
+                          notify('Please drop a valid .zip archive.', 'error');
+                        }
+                      }}
+                      className={`flex items-center gap-3 w-full rounded-lg border border-dashed px-4 py-2.5 text-sm cursor-pointer transition-colors ${
+                        draggingZip
+                          ? 'border-blue-400 bg-blue-500/10 text-white'
+                          : 'border-white/20 bg-[#0B0F19] text-slate-300 hover:border-blue-500/60'
+                      }`}
+                    >
                       <Upload className="w-4 h-4 text-blue-400 shrink-0" />
                       <span className="truncate">
-                        {zipFile ? zipFile.name : 'Choose .zip source archive'}
+                        {zipFile
+                          ? `${zipFile.name} (${(zipFile.size / 1024).toFixed(0)} KB)`
+                          : 'Drop .zip here or click to browse'}
                       </span>
                       <input
                         type="file"
@@ -417,18 +441,23 @@ export function RepositoriesPage() {
           </div>
 
           <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-[#111827] border border-white/[0.08]">
-            {(['all', 'completed', 'indexing', 'failed'] as const).map((status) => (
+            {([
+              { id: 'all', label: 'All' },
+              { id: 'completed', label: 'Completed' },
+              { id: 'indexing', label: 'In Progress' },
+              { id: 'failed', label: 'Failed' },
+            ] as const).map((status) => (
               <button
-                key={status}
+                key={status.id}
                 type="button"
-                onClick={() => setStatusFilter(status)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md capitalize transition-colors whitespace-nowrap ${
-                  statusFilter === status
+                onClick={() => setStatusFilter(status.id)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                  statusFilter === status.id
                     ? 'bg-blue-600 text-white'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {status}
+                {status.label}
               </button>
             ))}
           </div>
@@ -520,6 +549,19 @@ export function RepositoriesPage() {
                       </>
                     )}
                   </div>
+                  {(repo.status === 'indexing' || repo.status === 'analyzing') && (
+                    <div className="mt-2.5 h-1.5 w-full max-w-md rounded-full bg-[#0B0F19] overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-violet-500 transition-all duration-300"
+                        style={{ width: `${repo.progress}%` }}
+                      />
+                    </div>
+                  )}
+                  {repo.status === 'failed' && repo.errorMessage && (
+                    <p className="mt-1.5 text-xs text-rose-300/90 line-clamp-1">
+                      {repo.errorMessage}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">

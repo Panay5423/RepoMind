@@ -6,6 +6,7 @@ import {
   GitBranch,
   MessageSquare,
   Plus,
+  Search,
   Upload,
 } from 'lucide-react';
 import type { DashboardOverviewDTO } from '../../shared/types.ts';
@@ -19,6 +20,7 @@ export function DashboardPage() {
   const [data, setData] = useState<DashboardOverviewDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [repoFilter, setRepoFilter] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -40,6 +42,15 @@ export function DashboardPage() {
 
   const maxLangCount =
     data?.languagesDetected.reduce((m, l) => Math.max(m, l.count), 1) || 1;
+
+  const filteredRepos = (data?.recentRepositories || []).filter((repo) => {
+    const q = repoFilter.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      repo.fullName.toLowerCase().includes(q) ||
+      repo.primaryLanguage.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <WorkspaceLayout
@@ -69,7 +80,7 @@ export function DashboardPage() {
           <button
             type="button"
             onClick={() => void connectGitHub()}
-            className="flex items-center justify-between p-4 rounded-xl border border-white/[0.08] bg-[#111827] hover:border-white/20 text-left transition-colors"
+            className="flex items-center justify-between p-4 rounded-xl border border-white/[0.08] bg-[#111827] hover:border-violet-500/40 text-left transition-colors"
           >
             <div>
               <p className="text-sm font-semibold text-white">
@@ -87,7 +98,7 @@ export function DashboardPage() {
           <button
             type="button"
             onClick={() => navigate('/repositories?import=zip')}
-            className="flex items-center justify-between p-4 rounded-xl border border-white/[0.08] bg-[#111827] hover:border-white/20 text-left transition-colors"
+            className="flex items-center justify-between p-4 rounded-xl border border-white/[0.08] bg-[#111827] hover:border-blue-500/40 text-left transition-colors"
           >
             <div>
               <p className="text-sm font-semibold text-white">Upload Repository ZIP</p>
@@ -101,7 +112,7 @@ export function DashboardPage() {
           <button
             type="button"
             onClick={() => navigate('/repositories?import=url')}
-            className="flex items-center justify-between p-4 rounded-xl border border-white/[0.08] bg-[#111827] hover:border-white/20 text-left transition-colors"
+            className="flex items-center justify-between p-4 rounded-xl border border-white/[0.08] bg-[#111827] hover:border-emerald-500/40 text-left transition-colors"
           >
             <div>
               <p className="text-sm font-semibold text-white">Analyze Codebase URL</p>
@@ -131,25 +142,25 @@ export function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-xl border border-white/[0.08] bg-[#111827] p-5">
+            <div className="rounded-xl border border-white/[0.08] border-t-blue-500/40 bg-[#111827] p-5">
               <p className="text-xs text-slate-400">Repositories Analyzed</p>
               <p className="mt-2 font-display text-2xl font-bold text-white tabular-nums">
                 {data?.totalRepositories ?? 0}
               </p>
             </div>
-            <div className="rounded-xl border border-white/[0.08] bg-[#111827] p-5">
+            <div className="rounded-xl border border-white/[0.08] border-t-violet-500/40 bg-[#111827] p-5">
               <p className="text-xs text-slate-400">Total Files Indexed</p>
               <p className="mt-2 font-display text-2xl font-bold text-white tabular-nums">
                 {(data?.totalFilesIndexed ?? 0).toLocaleString()}
               </p>
             </div>
-            <div className="rounded-xl border border-white/[0.08] bg-[#111827] p-5">
+            <div className="rounded-xl border border-white/[0.08] border-t-cyan-500/40 bg-[#111827] p-5">
               <p className="text-xs text-slate-400">Lines Indexed</p>
               <p className="mt-2 font-display text-2xl font-bold text-white tabular-nums">
                 {(data?.totalLinesIndexed ?? 0).toLocaleString()}
               </p>
             </div>
-            <div className="rounded-xl border border-white/[0.08] bg-[#111827] p-5">
+            <div className="rounded-xl border border-white/[0.08] border-t-emerald-500/40 bg-[#111827] p-5">
               <p className="text-xs text-slate-400">Avg Health Estimate</p>
               <p className="mt-2 font-display text-2xl font-bold text-white tabular-nums">
                 {data?.averageHealthScore !== null && data?.averageHealthScore !== undefined
@@ -164,16 +175,30 @@ export function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Recent Repository Activity */}
           <section className="lg:col-span-7 rounded-xl border border-white/[0.08] bg-[#111827] overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between">
+            <div className="px-5 py-4 border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-display text-base font-semibold text-white">
                 Recent Repository Activity
               </h2>
-              <Link
-                to="/repositories"
-                className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                View all
-              </Link>
+              <div className="flex items-center gap-3">
+                {(data?.recentRepositories.length || 0) > 1 && (
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={repoFilter}
+                      onChange={(e) => setRepoFilter(e.target.value)}
+                      placeholder="Filter..."
+                      className="w-36 rounded-md border border-white/10 bg-[#0B0F19] pl-7 pr-2.5 py-1 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
+                <Link
+                  to="/repositories"
+                  className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  View all
+                </Link>
+              </div>
             </div>
 
             {!loading && (!data || data.recentRepositories.length === 0) ? (
@@ -191,16 +216,21 @@ export function DashboardPage() {
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
+            ) : filteredRepos.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-400">
+                No recent repositories match "{repoFilter}".
+              </div>
             ) : (
               <div className="divide-y divide-white/[0.06]">
-                {(data?.recentRepositories || []).map((repo) => (
-                  <Link
+                {filteredRepos.map((repo) => (
+                  <div
                     key={repo.id}
-                    to={`/repositories/${repo.id}`}
-                    className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
                   >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{repo.fullName}</p>
+                    <Link to={`/repositories/${repo.id}`} className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-white hover:text-blue-400 truncate transition-colors">
+                        {repo.fullName}
+                      </p>
                       <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-400 font-mono">
                         <span>{repo.primaryLanguage}</span>
                         <span aria-hidden="true">·</span>
@@ -208,17 +238,41 @@ export function DashboardPage() {
                         <span aria-hidden="true">·</span>
                         <span className="capitalize">{repo.status}</span>
                       </div>
-                    </div>
-                    <div className="text-right shrink-0">
+                    </Link>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center gap-2 text-[11px] font-mono text-slate-400">
+                        <Link
+                          to={`/repositories/${repo.id}?tab=explorer`}
+                          className="hover:text-blue-300 transition-colors"
+                        >
+                          Code
+                        </Link>
+                        <span className="text-slate-600">·</span>
+                        <Link
+                          to={`/repositories/${repo.id}?tab=chat`}
+                          className="hover:text-blue-300 transition-colors"
+                        >
+                          Chat
+                        </Link>
+                        <span className="text-slate-600">·</span>
+                        <Link
+                          to={`/repositories/${repo.id}?tab=bugs`}
+                          className="hover:text-blue-300 transition-colors"
+                        >
+                          Bugs
+                        </Link>
+                      </div>
                       {typeof repo.healthScore === 'number' ? (
-                        <span className="font-mono text-sm font-semibold text-slate-200 tabular-nums">
+                        <span className="font-mono text-sm font-semibold text-slate-200 tabular-nums pl-2 border-l border-white/[0.08]">
                           {repo.healthScore}/100
                         </span>
                       ) : (
-                        <span className="text-xs text-slate-500">{repo.progress}%</span>
+                        <span className="text-xs text-slate-500 pl-2 border-l border-white/[0.08] tabular-nums">
+                          {repo.progress}%
+                        </span>
                       )}
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}

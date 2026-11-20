@@ -1,6 +1,5 @@
 import { env } from '../../config/env.ts';
-import { isBinaryOrIgnored, isImportantFilePath } from '../../utils/chunker.ts';
-import { isSafeRepoPath } from '../../utils/security.ts';
+import { extractZipSafely } from '../repository/zipService.ts';
 
 export interface GitHubRepoSummary {
   id: number;
@@ -135,14 +134,31 @@ export function parseGitHubRepoInput(input: string): { owner: string; repo: stri
   if (slugMatch) {
     return { owner: slugMatch[1], repo: slugMatch[2] };
   }
-  throw new Error('Enter a valid GitHub repository URL or owner/repo slug (e.g. expressjs/express).');
+  throw new Error('Enter a valid GitHub repository URL or owner/repo slug (e.g. honojs/hono).');
+}
+
+async function downloadZipBuffer(url: string, headers: Record<string, string>): Promise<Buffer> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const res = await fetch(url, { headers, redirect: 'follow', signal: controller.signal });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const arr = await res.arrayBuffer();
+    if (arr.byteLength > 28 * 1024 * 1024) {
+      throw new Error('Repository archive exceeds the 28 MB ingestion cap.');
+    }
+    return Buffer.from(arr);
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function fetchGitHubRepositoryFiles(params: {
   owner: string;
   repo: string;
   token?: string;
-  maxFiles?: number;
 }): Promise<{
   name: string;
   fullName: string;
@@ -151,102 +167,73 @@ export async function fetchGitHubRepositoryFiles(params: {
   htmlUrl: string;
   files: RawRepoFile[];
 }> {
-  const { owner, repo, token, maxFiles = 140 } = params;
+  const { owner, repo, token } = params;
   const headers = githubHeaders(token);
 
+  let name = repo;
+  let fullName = `${owner}/${repo}`;
+  let description = '';
+  let branch = 'main';
+  let htmlUrl = `https://github.com/${owner}/${repo}`;
+
+  // 1. Try metadata endpoint (single API call)
   const metaRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers });
-  if (!metaRes.ok) {
-    if (metaRes.status === 404) {
-      throw new Error(`Repository ${owner}/${repo} not found or is private (connect GitHub OAuth for private repos).`);
-    }
-    if (metaRes.status === 403) {
-      throw new Error('GitHub API rate limit exceeded. Connect GitHub OAuth or try again shortly.');
-    }
-    throw new Error(`GitHub returned status ${metaRes.status}`);
-  }
-
-  const meta = (await metaRes.json()) as {
-    name: string;
-    full_name: string;
-    description: string | null;
-    default_branch: string;
-    html_url: string;
-  };
-  const branch = meta.default_branch || 'main';
-
-  const treeRes = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`,
-    { headers }
-  );
-  if (!treeRes.ok) {
-    throw new Error(`Unable to fetch repository file tree for ${owner}/${repo}@${branch}.`);
-  }
-
-  const treeData = (await treeRes.json()) as {
-    tree: Array<{ path: string; type: string; size?: number }>;
-  };
-
-  const candidateBlobs = (treeData.tree || [])
-    .filter(
-      (entry) =>
-        entry.type === 'blob' &&
-        isSafeRepoPath(entry.path) &&
-        !isBinaryOrIgnored(entry.path) &&
-        (entry.size ?? 0) <= 140_000
-    )
-    .sort((a, b) => {
-      const impA = isImportantFilePath(a.path) ? 1 : 0;
-      const impB = isImportantFilePath(b.path) ? 1 : 0;
-      if (impA !== impB) return impB - impA;
-      return a.path.split('/').length - b.path.split('/').length;
-    })
-    .slice(0, maxFiles);
-
-  const files: RawRepoFile[] = [];
-  const concurrency = 10;
-  for (let i = 0; i < candidateBlobs.length; i += concurrency) {
-    const batch = candidateBlobs.slice(i, i + concurrency);
-    const results = await Promise.all(
-      batch.map(async (blob) => {
-        try {
-          const encodedPath = blob.path
-            .split('/')
-            .map((s) => encodeURIComponent(s))
-            .join('/');
-          const contentRes = await fetch(
-            `https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}`,
-            { headers }
-          );
-          if (!contentRes.ok) return null;
-          const fileJson = (await contentRes.json()) as { content?: string; encoding?: string };
-          if (!fileJson.content || fileJson.encoding !== 'base64') return null;
-          const text = Buffer.from(fileJson.content, 'base64').toString('utf8');
-          if (text.includes('\0')) return null;
-          return {
-            path: blob.path,
-            content: text,
-            size: Buffer.byteLength(text, 'utf8'),
-          };
-        } catch {
-          return null;
-        }
-      })
+  if (metaRes.ok) {
+    const meta = (await metaRes.json()) as {
+      name: string;
+      full_name: string;
+      description: string | null;
+      default_branch: string;
+      html_url: string;
+    };
+    name = meta.name;
+    fullName = meta.full_name;
+    description = meta.description || '';
+    branch = meta.default_branch || 'main';
+    htmlUrl = meta.html_url;
+  } else if (metaRes.status === 404) {
+    throw new Error(
+      `Repository ${owner}/${repo} was not found or is private (connect GitHub OAuth for private repos).`
     );
-    for (const r of results) {
-      if (r) files.push(r);
+  }
+
+  // 2. Download entire archive in 1 HTTP call (avoids N-file GitHub API rate limits)
+  let zipBuffer: Buffer | null = null;
+  if (token || env.githubFallbackToken) {
+    zipBuffer = await downloadZipBuffer(
+      `https://api.github.com/repos/${owner}/${repo}/zipball/${encodeURIComponent(branch)}`,
+      headers
+    );
+  } else {
+    // Public codeload endpoints do not consume GitHub REST API rate limits
+    const branchesToTry = metaRes.ok ? [branch] : ['main', 'master'];
+    for (const candidate of branchesToTry) {
+      try {
+        zipBuffer = await downloadZipBuffer(
+          `https://codeload.github.com/${owner}/${repo}/zip/refs/heads/${encodeURIComponent(candidate)}`,
+          { 'User-Agent': 'RepoMind-Platform' }
+        );
+        branch = candidate;
+        break;
+      } catch {
+        // try next branch
+      }
+    }
+    if (!zipBuffer) {
+      zipBuffer = await downloadZipBuffer(
+        `https://api.github.com/repos/${owner}/${repo}/zipball/${encodeURIComponent(branch)}`,
+        headers
+      );
     }
   }
 
-  if (files.length === 0) {
-    throw new Error('No readable source code files were found in this repository.');
-  }
-
+  const files = extractZipSafely(zipBuffer);
   return {
-    name: meta.name,
-    fullName: meta.full_name,
-    description: meta.description || '',
+    name,
+    fullName,
+    description,
     defaultBranch: branch,
-    htmlUrl: meta.html_url,
+    htmlUrl,
     files,
   };
 }

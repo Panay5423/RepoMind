@@ -54,11 +54,13 @@ export async function retrieveRelevantChunks(
     queryVec = vec || [];
   }
 
-  const queryTokens = query
+  const rawTokens = query
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
     .toLowerCase()
     .replace(/[^a-z0-9_./-]+/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean);
+    .split(/[\s_/-]+/)
+    .filter((t) => t.length >= 2);
+  const queryTokens = Array.from(new Set(rawTokens));
 
   const scored: RetrievedChunk[] = [];
   for (const file of files) {

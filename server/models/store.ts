@@ -430,6 +430,38 @@ export const db = {
     return record;
   },
 
+  async updateConversationTitle(conversationId: string, title: string): Promise<void> {
+    const now = new Date().toISOString();
+    if (useMongo) {
+      await MongooseModels.Conversation.updateOne(
+        { _id: conversationId },
+        { $set: { title, updatedAt: now } }
+      );
+      return;
+    }
+    const store = loadLocalStore();
+    const conv = store.conversations.find((c) => c.id === conversationId);
+    if (conv) {
+      conv.title = title;
+      conv.updatedAt = now;
+      await schedulePersist();
+    }
+  },
+
+  async deleteConversation(conversationId: string): Promise<void> {
+    if (useMongo) {
+      await Promise.all([
+        MongooseModels.Conversation.deleteOne({ _id: conversationId }),
+        MongooseModels.Message.deleteMany({ conversationId }),
+      ]);
+      return;
+    }
+    const store = loadLocalStore();
+    store.conversations = store.conversations.filter((c) => c.id !== conversationId);
+    store.messages = store.messages.filter((m) => m.conversationId !== conversationId);
+    await schedulePersist();
+  },
+
   async listMessages(conversationId: string): Promise<MessageDTO[]> {
     if (useMongo) {
       const docs = await MongooseModels.Message.find({ conversationId })

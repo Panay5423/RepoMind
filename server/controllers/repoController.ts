@@ -79,7 +79,12 @@ export async function listRepositories(req: AuthenticatedRequest, res: Response)
       r.name.toLowerCase().includes(search) ||
       r.fullName.toLowerCase().includes(search) ||
       r.primaryLanguage.toLowerCase().includes(search);
-    const matchesStatus = !status || status === 'all' || r.status === status;
+    const matchesStatus =
+      !status ||
+      status === 'all' ||
+      (status === 'indexing'
+        ? r.status === 'indexing' || r.status === 'analyzing' || r.status === 'pending'
+        : r.status === status);
     return matchesSearch && matchesStatus;
   });
 
@@ -258,6 +263,59 @@ export async function getRepositoryFileContent(
     complexityScore: match.complexityScore,
     content: reconstructed || match.chunks.map((c) => c.content).join('\n'),
   });
+}
+
+export async function searchRepositoryCode(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+  const repoId = String(req.params.id);
+  const query = String(req.query.q || '').trim();
+  const repo = await db.findRepositoryById(repoId);
+  if (!repo || repo.userId !== req.user!.id) {
+    res.status(404).json({ error: 'Repository not found.' });
+    return;
+  }
+  if (!query || query.length < 2) {
+    res.json({ matches: [] });
+    return;
+  }
+
+  const files = await db.listRepositoryFiles(repo.id);
+  const needle = query.toLowerCase();
+  const matches: Array<{
+    filePath: string;
+    language: string;
+    lineNumber: number;
+    lineText: string;
+  }> = [];
+
+  for (const file of files) {
+    const seenLines = new Set<number>();
+    for (const chunk of file.chunks) {
+      for (const rawLine of chunk.content.split('\n')) {
+        const m = rawLine.match(/^(\d+):\s?(.*)$/);
+        const lineNum = m ? Number(m[1]) : chunk.startLine;
+        const text = m ? m[2] : rawLine;
+        if (seenLines.has(lineNum)) continue;
+        if (text.toLowerCase().includes(needle)) {
+          seenLines.add(lineNum);
+          matches.push({
+            filePath: file.path,
+            language: file.language,
+            lineNumber: lineNum,
+            lineText: text.trim().slice(0, 220),
+          });
+          if (matches.length >= 120) {
+            res.json({ matches });
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  res.json({ matches });
 }
 
 export async function reanalyzeRepository(
