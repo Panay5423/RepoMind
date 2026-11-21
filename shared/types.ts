@@ -1,13 +1,19 @@
 export type RepoSourceType = 'github' | 'zip';
 export type AnalysisStatus = 'pending' | 'indexing' | 'analyzing' | 'completed' | 'failed';
 
+export type AuthProviderKind = 'local' | 'github' | 'hybrid';
+
 export interface PublicUser {
   id: string;
   name: string;
   email: string;
+  roleTitle?: string;
+  authProvider: AuthProviderKind;
+  hasPassword: boolean;
   githubConnected: boolean;
   githubUsername?: string;
   githubAvatarUrl?: string;
+  lastLoginAt?: string;
   createdAt: string;
 }
 

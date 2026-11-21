@@ -47,14 +47,14 @@ export function DataFlowPanel({
 
   if (flows.length === 0) {
     return (
-      <div className="rounded-lg border border-[#202A3A] bg-[#101623] p-8 text-center">
-        <div className="w-10 h-10 rounded-lg border border-[#202A3A] bg-[#0D111B] flex items-center justify-center mx-auto mb-3">
-          <Workflow className="w-5 h-5 text-[#64748B]" />
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white shadow-2xs p-8 text-center">
+        <div className="w-10 h-10 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-center mx-auto mb-3">
+          <Workflow className="w-5 h-5 text-[#2563EB]" />
         </div>
-        <p className="text-[14px] font-semibold text-[#F1F5F9]">
+        <p className="text-[14px] font-semibold text-[#0F172A]">
           No static request or event flows detected
         </p>
-        <p className="mt-1 text-[12px] text-[#94A3B8] max-w-md mx-auto">
+        <p className="mt-1 text-[12px] text-[#64748B] max-w-md mx-auto">
           Execution chains are traced automatically from Express/NestJS routes, HTTP clients,
           WebSocket events, and background worker hooks.
         </p>
@@ -67,24 +67,26 @@ export function DataFlowPanel({
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-lg border border-[#202A3A] bg-[#101623] p-4 space-y-4"
+      className="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-10px_rgba(37,99,235,0.06)] p-4 sm:p-5 space-y-4"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-[14px] font-semibold text-[#F1F5F9]">End-to-End Data Flow Tracer</h3>
-          <p className="text-[12px] text-[#94A3B8]">
+          <h3 className="font-display text-[14px] font-semibold text-[#0F172A]">
+            End-to-End Data Flow Tracer
+          </h3>
+          <p className="text-[12px] text-[#64748B]">
             Select a traced execution chain to highlight its complete path on the File canvas.
           </p>
         </div>
 
-        <div className="inline-flex flex-wrap items-center gap-0.5 p-0.5 rounded-lg bg-[#080B12] border border-[#202A3A]">
+        <div className="inline-flex flex-wrap items-center gap-0.5 p-1 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
           <button
             type="button"
             onClick={() => setCategoryFilter('all')}
-            className={`px-2.5 h-7 text-[11px] font-medium rounded-md transition-colors ${
+            className={`px-2.5 h-7 text-[11px] font-medium rounded-lg transition-colors whitespace-nowrap ${
               categoryFilter === 'all'
-                ? 'bg-[#151D2B] text-[#F1F5F9] border border-[#60A5FA]/35'
-                : 'text-[#94A3B8] hover:text-[#F1F5F9]'
+                ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-2xs font-semibold'
+                : 'text-[#64748B] hover:text-[#0F172A]'
             }`}
           >
             All ({flows.length})
@@ -94,10 +96,10 @@ export function DataFlowPanel({
               key={cat}
               type="button"
               onClick={() => setCategoryFilter(cat)}
-              className={`px-2.5 h-7 text-[11px] font-medium rounded-md transition-colors ${
+              className={`px-2.5 h-7 text-[11px] font-medium rounded-lg transition-colors whitespace-nowrap ${
                 categoryFilter === cat
-                  ? 'bg-[#151D2B] text-[#F1F5F9] border border-[#60A5FA]/35'
-                  : 'text-[#94A3B8] hover:text-[#F1F5F9]'
+                  ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-2xs font-semibold'
+                  : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
               {CATEGORY_LABELS[cat] || cat}
@@ -116,17 +118,17 @@ export function DataFlowPanel({
                 key={flow.id}
                 type="button"
                 onClick={() => onSelectFlow(isSelected ? null : flow)}
-                className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
+                className={`w-full text-left px-3 py-2.5 rounded-xl border transition-colors ${
                   isSelected
-                    ? 'border-[#22D3EE]/50 bg-[#151D2B] text-[#F1F5F9]'
-                    : 'border-[#202A3A] bg-[#0D111B] text-[#94A3B8] hover:border-[#334155] hover:text-[#F1F5F9]'
+                    ? 'border-[#2563EB] bg-[#EFF6FF]/70 text-[#0F172A] shadow-2xs'
+                    : 'border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B] hover:border-[#93C5FD] hover:bg-white hover:text-[#0F172A]'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[12px] font-semibold truncate text-[#F1F5F9]">
+                  <span className="font-mono text-[12px] font-semibold truncate text-[#0F172A]">
                     {flow.title}
                   </span>
-                  <span className="text-[10px] font-mono text-[#64748B] shrink-0 tabular-nums">
+                  <span className="text-[10px] font-mono text-[#2563EB] font-medium shrink-0 tabular-nums">
                     {flow.steps.length} steps
                   </span>
                 </div>
@@ -139,22 +141,22 @@ export function DataFlowPanel({
         </div>
 
         {/* Visual Step Pipeline */}
-        <div className="lg:col-span-8 rounded-lg border border-[#202A3A] bg-[#0D111B] p-4 flex flex-col justify-between">
+        <div className="lg:col-span-8 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 flex flex-col justify-between">
           {activeFlow ? (
             <div className="space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#202A3A] pb-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2E8F0] pb-2.5">
                 <div className="min-w-0">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#22D3EE]">
+                  <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-[#0284C7]">
                     {CATEGORY_LABELS[activeFlow.category]}
                   </span>
-                  <h4 className="text-[13px] font-semibold text-[#F1F5F9] font-mono truncate">
+                  <h4 className="text-[13px] font-semibold text-[#0F172A] font-mono truncate">
                     {activeFlow.title}
                   </h4>
                 </div>
                 <button
                   type="button"
                   onClick={() => onSelectFlow(activeFlow)}
-                  className="h-8 px-3 rounded-lg border border-[#22D3EE]/40 bg-[#22D3EE]/15 hover:bg-[#22D3EE]/20 text-[12px] font-medium text-[#22D3EE] transition-colors shrink-0"
+                  className="h-8 px-3 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[12px] font-semibold text-[#1D4ED8] transition-colors shrink-0 whitespace-nowrap"
                 >
                   Highlight Path on Graph
                 </button>
@@ -166,15 +168,15 @@ export function DataFlowPanel({
                   const Icon = meta.icon;
                   return (
                     <div key={`${step.nodeId}-${idx}`} className="flex items-center gap-2">
-                      <div className="rounded-lg border border-[#202A3A] bg-[#101623] hover:bg-[#151D2B] px-3 py-2 min-w-[164px] max-w-[228px] transition-colors">
-                        <div className={`inline-flex items-center gap-1 text-[10px] font-mono ${meta.accentText}`}>
+                      <div className="rounded-xl border border-[#E2E8F0] bg-white hover:border-[#93C5FD] shadow-2xs px-3 py-2 min-w-[164px] max-w-[228px] transition-colors">
+                        <div className={`inline-flex items-center gap-1 text-[10px] font-mono font-medium ${meta.accentText}`}>
                           <Icon className="w-3 h-3 shrink-0" />
                           <span>{meta.label}</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => onFocusNode(step.nodeId)}
-                          className="mt-0.5 block w-full text-left text-[12px] font-semibold text-[#F1F5F9] hover:text-[#60A5FA] truncate transition-colors"
+                          className="mt-0.5 block w-full text-left text-[12px] font-semibold text-[#0F172A] hover:text-[#2563EB] truncate transition-colors"
                         >
                           {step.name}
                         </button>
@@ -182,7 +184,7 @@ export function DataFlowPanel({
                           <button
                             type="button"
                             onClick={() => onOpenFile(step.filePath!, step.line)}
-                            className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-mono text-[#94A3B8] hover:text-[#60A5FA] truncate max-w-full transition-colors"
+                            className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-mono text-[#64748B] hover:text-[#2563EB] truncate max-w-full transition-colors"
                           >
                             <span className="truncate">
                               {step.filePath}
@@ -197,7 +199,7 @@ export function DataFlowPanel({
                           <span className="text-[9px] font-mono text-[#64748B]">
                             {step.relationToNext || 'NEXT'}
                           </span>
-                          <ArrowRight className="w-3.5 h-3.5 text-[#22D3EE]" />
+                          <ArrowRight className="w-3.5 h-3.5 text-[#2563EB]" />
                         </div>
                       )}
                     </div>

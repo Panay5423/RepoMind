@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
+import { PRIMARY_BLUE_BTN, SECONDARY_WHITE_BTN } from './ui/PremiumPrimitives.tsx';
 
 interface ErrorBoundaryProps {
   title?: string;
@@ -37,24 +38,26 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-[280px] w-full flex items-center justify-center p-6 bg-[#0B0F19]">
-          <div className="max-w-lg w-full rounded-xl border border-rose-500/30 bg-[#111827] p-6 space-y-4">
+        <div className="min-h-[280px] w-full flex items-center justify-center p-6 bg-[#F8FAFC]">
+          <div className="max-w-lg w-full rounded-2xl border border-[#FECDD3] bg-white p-6 space-y-4 shadow-[0_12px_30px_-10px_rgba(15,23,42,0.1)]">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+              <div className="rounded-xl border border-[#FECDD3] bg-[#FFF1F2] p-2 text-[#E11D48] shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
               <div className="min-w-0">
-                <h2 className="text-sm font-semibold text-white">
+                <h2 className="font-display text-[15px] font-semibold text-[#0F172A]">
                   {this.props.title || 'Something went wrong while rendering this view'}
                 </h2>
-                <p className="mt-1 text-xs font-mono text-rose-200/80 break-words">
+                <p className="mt-1.5 text-[12px] font-mono text-[#E11D48] break-words">
                   {this.state.message}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-2.5 pt-1">
               <button
                 type="button"
                 onClick={this.handleReset}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white transition-colors"
+                className={`${PRIMARY_BLUE_BTN} h-9 px-3.5 text-[12px]`}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset View</span>
@@ -62,7 +65,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="px-3 py-1.5 rounded-lg border border-white/10 text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.04] transition-colors"
+                className={`${SECONDARY_WHITE_BTN} h-9 px-3.5 text-[12px]`}
               >
                 Reload Page
               </button>

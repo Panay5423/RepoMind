@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   Activity,
   Bug,
@@ -15,6 +16,7 @@ import {
 import type {
   AnalysisDTO,
   BugFindingDTO,
+  ChatMode,
   DocumentationDTO,
   RepositoryDTO,
   RepositoryFileDTO,
@@ -30,7 +32,12 @@ import { BugsTab } from '../components/workspace/BugsTab.tsx';
 import { DocsTab } from '../components/workspace/DocsTab.tsx';
 import { HealthTab } from '../components/workspace/HealthTab.tsx';
 import { CodeViewerModal } from '../components/workspace/CodeViewerModal.tsx';
-import type { ChatMode } from '../../shared/types.ts';
+import {
+  PRIMARY_BLUE_BTN,
+  RM_EASE,
+  SECONDARY_WHITE_BTN,
+  SkeletonCard,
+} from '../components/ui/PremiumPrimitives.tsx';
 
 type WorkspaceTab =
   | 'overview'
@@ -202,7 +209,13 @@ export function RepoWorkspacePage() {
     { id: 'health', label: 'Health Score', icon: Activity },
   ];
 
-  const langPalette = ['bg-blue-500', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-slate-500'];
+  const langPalette = [
+    'bg-[#2563EB]',
+    'bg-[#3B82F6]',
+    'bg-[#60A5FA]',
+    'bg-[#0B1F3A]',
+    'bg-[#93C5FD]',
+  ];
   const workspaceReady = files.length > 0 || Boolean(analysis) || repository?.status === 'completed';
 
   return (
@@ -216,79 +229,88 @@ export function RepoWorkspacePage() {
         repository && (
           <div className="flex items-center gap-2">
             {analysis && (
-              <button
+              <motion.button
                 type="button"
+                whileTap={{ scale: 0.97 }}
                 onClick={handleExportFullReport}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/[0.04] whitespace-nowrap"
+                className={`${SECONDARY_WHITE_BTN} h-9 px-3 text-[12px]`}
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-3.5 h-3.5 text-[#475569]" />
                 <span className="hidden sm:inline">Export Report</span>
-              </button>
+              </motion.button>
             )}
             {repository.githubUrl && (
-              <a
+              <motion.a
+                whileTap={{ scale: 0.97 }}
                 href={repository.githubUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/[0.04] whitespace-nowrap"
+                className={`${SECONDARY_WHITE_BTN} h-9 px-3 text-[12px]`}
               >
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-3.5 h-3.5 text-[#475569]" />
                 <span className="hidden sm:inline">GitHub</span>
-              </a>
+              </motion.a>
             )}
-            <button
+            <motion.button
               type="button"
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => void handleReanalyze()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white whitespace-nowrap"
+              className={`${PRIMARY_BLUE_BTN} h-9 px-3.5 text-[12px]`}
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Re-analyze</span>
-            </button>
+            </motion.button>
           </div>
         )
       }
     >
       {loading ? (
         <div className="space-y-4">
-          <div className="h-24 rounded-xl border border-white/[0.08] bg-[#111827] animate-pulse" />
-          <div className="h-96 rounded-xl border border-white/[0.08] bg-[#111827] animate-pulse" />
+          <SkeletonCard className="h-28" />
+          <SkeletonCard className="h-96" />
         </div>
       ) : error || !repository ? (
-        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-8 text-center">
-          <p className="text-sm font-medium text-rose-300">{error || 'Repository not found.'}</p>
+        <div className="rounded-2xl border border-[#FECDD3] bg-white p-8 text-center shadow-2xs">
+          <p className="text-[14px] font-semibold text-[#E11D48]">{error || 'Repository not found.'}</p>
           <button
             type="button"
             onClick={() => navigate('/repositories')}
-            className="mt-4 px-4 py-2 rounded-lg bg-[#111827] text-xs font-medium text-white border border-white/10"
+            className={`${SECONDARY_WHITE_BTN} mt-4 h-9 px-4 text-[12px]`}
           >
             Back to Repositories
           </button>
         </div>
       ) : (
-        <div className="space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, ease: RM_EASE }}
+          className="space-y-6"
+        >
           {/* Header Metadata Bar + Language Ratio Strip */}
-          <div className="rounded-xl border border-white/[0.08] bg-[#111827] p-5 space-y-3">
+          <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 space-y-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_28px_-12px_rgba(37,99,235,0.08)]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="font-display text-2xl font-bold tracking-tight text-white">
+                <h1 className="font-display text-2xl font-bold tracking-tight text-[#0B1F3A]">
                   {repository.fullName}
                 </h1>
-                <div className="mt-1 flex flex-wrap items-center gap-2.5 text-xs text-slate-400 font-mono">
-                  <span>{repository.primaryLanguage}</span>
-                  <span aria-hidden="true">·</span>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2.5 text-[12px] text-[#64748B] font-mono">
+                  <span className="text-[#0F172A] font-semibold">{repository.primaryLanguage}</span>
+                  <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
                   <span className="tabular-nums">{repository.fileCount} files</span>
-                  <span aria-hidden="true">·</span>
+                  <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
                   <span className="tabular-nums">{repository.totalLines.toLocaleString()} lines</span>
                   {analysis && (
                     <>
-                      <span aria-hidden="true">·</span>
+                      <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
                       <span className="tabular-nums">{analysis.dependencies.length} deps</span>
                     </>
                   )}
                   {typeof repository.healthScore === 'number' && (
                     <>
-                      <span aria-hidden="true">·</span>
-                      <span className="text-slate-200 tabular-nums">
+                      <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
+                      <span className="text-[#059669] font-semibold tabular-nums">
                         Health estimate: {repository.healthScore}/100
                       </span>
                     </>
@@ -296,13 +318,18 @@ export function RepoWorkspacePage() {
                 </div>
               </div>
               {repository.description && (
-                <p className="text-xs text-slate-400 max-w-md">{repository.description}</p>
+                <p className="text-[13px] text-[#475569] max-w-md">{repository.description}</p>
               )}
             </div>
 
             {repository.languages.length > 0 && (
               <div className="space-y-2 pt-1">
-                <div className="h-1.5 w-full rounded-full bg-[#0B0F19] overflow-hidden flex">
+                <motion.div
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.4, ease: RM_EASE }}
+                  className="h-2 w-full rounded-full bg-[#F1F5F9] overflow-hidden flex origin-left"
+                >
                   {repository.languages.slice(0, 5).map((lang, idx) => (
                     <div
                       key={lang.language}
@@ -311,8 +338,8 @@ export function RepoWorkspacePage() {
                       title={`${lang.language}: ${lang.percentage}%`}
                     />
                   ))}
-                </div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-mono text-slate-400">
+                </motion.div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-mono text-[#64748B]">
                   {repository.languages.slice(0, 5).map((lang, idx) => (
                     <span key={lang.language} className="inline-flex items-center gap-1.5">
                       <span
@@ -330,34 +357,34 @@ export function RepoWorkspacePage() {
 
           {/* Active Processing Progress */}
           {(repository.status === 'indexing' || repository.status === 'analyzing') && (
-            <div className="rounded-xl border border-blue-500/30 bg-[#111827] p-5 space-y-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-blue-300">{repository.progressStage}</span>
-                <span className="font-mono text-slate-300 tabular-nums">
+            <div className="rounded-2xl border border-[#BFDBFE] bg-white p-5 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="font-semibold text-[#2563EB]">{repository.progressStage}</span>
+                <span className="font-mono font-semibold text-[#0F172A] tabular-nums">
                   {repository.progress}%
                 </span>
               </div>
-              <div className="h-2 w-full rounded-full bg-[#0B0F19] overflow-hidden">
+              <div className="h-2 w-full rounded-full bg-[#EFF6FF] overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-violet-500 transition-all duration-300"
-                  style={{ width: `${repository.progress}%` }}
+                  className="h-full bg-gradient-to-r from-[#2563EB] to-[#60A5FA] transition-all duration-300"
+                  style={{ width: `${repoProgressClamp(repository.progress)}%` }}
                 />
               </div>
             </div>
           )}
 
           {repository.status === 'failed' && (
-            <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="rounded-2xl border border-[#FECDD3] bg-[#FFF1F2] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold text-rose-300">Analysis failed</p>
-                <p className="text-xs text-rose-200/80 mt-1">
+                <p className="text-[14px] font-semibold text-[#E11D48]">Analysis failed</p>
+                <p className="text-[12px] text-[#9F1239] mt-1">
                   {repository.errorMessage || 'An unexpected error occurred during indexing.'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => void handleReanalyze()}
-                className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shrink-0"
+                className="h-9 px-4 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white text-[12px] font-semibold shrink-0 transition-colors"
               >
                 Retry Analysis
               </button>
@@ -365,7 +392,7 @@ export function RepoWorkspacePage() {
           )}
 
           {/* Workspace Tab Bar */}
-          <div className="border-b border-white/[0.08] overflow-x-auto">
+          <div className="border-b border-[#E2E8F0] overflow-x-auto bg-white rounded-t-2xl px-2 shadow-2xs">
             <nav className="flex items-center gap-1 min-w-max" aria-label="Workspace modules">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -375,84 +402,97 @@ export function RepoWorkspacePage() {
                     key={tab.id}
                     type="button"
                     onClick={() => handleTabChange(tab.id)}
-                    className={`inline-flex items-center gap-2 px-4 py-3 text-xs font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
-                      active
-                        ? 'border-blue-500 text-white'
-                        : 'border-transparent text-slate-400 hover:text-slate-200'
+                    className={`relative inline-flex items-center gap-2 px-4 py-3.5 text-[12px] font-semibold transition-colors whitespace-nowrap shrink-0 ${
+                      active ? 'text-[#2563EB]' : 'text-[#64748B] hover:text-[#0F172A]'
                     }`}
                   >
-                    <Icon className="w-4 h-4 shrink-0" />
+                    <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-[#2563EB]' : 'text-[#64748B]'}`} />
                     <span>{tab.label}</span>
+                    {active && (
+                      <motion.span
+                        layoutId="workspace-active-tab-line"
+                        transition={{ duration: 0.18, ease: RM_EASE }}
+                        className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-[#2563EB]"
+                      />
+                    )}
                   </button>
                 );
               })}
             </nav>
           </div>
 
-          {/* Tab Viewports */}
+          {/* Tab Viewports with smooth AnimatePresence transitions */}
           {!workspaceReady ? (
-            <div className="rounded-xl border border-white/[0.08] bg-[#111827] p-12 text-center text-sm text-slate-400">
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-12 text-center text-[13px] text-[#64748B]">
               Indexing source files and building repository tree...
             </div>
           ) : (
-            <>
-              {activeTab === 'overview' && analysis && (
-                <OverviewTab
-                  repository={repository}
-                  analysis={analysis}
-                  files={files}
-                  onOpenFile={(p) => openFile(p)}
-                />
-              )}
-              {activeTab === 'explorer' && (
-                <CodeExplorerTab
-                  repositoryId={repository.id}
-                  directoryTree={analysis?.directoryTree || []}
-                  files={files}
-                  onAskAI={handleAskAI}
-                />
-              )}
-              {activeTab === 'chat' && (
-                <ChatTab
-                  repositoryId={repository.id}
-                  repositoryName={repository.fullName}
-                  initialConversationId={convParam}
-                  pendingPrompt={pendingPrompt}
-                  onOpenFile={openFile}
-                />
-              )}
-              {activeTab === 'architecture' && (
-                <ArchitectureTab
-                  repositoryId={repository.id}
-                  repositoryName={repository.fullName}
-                  onOpenFile={openFile}
-                  onAskAI={handleAskAI}
-                />
-              )}
-              {activeTab === 'bugs' && (
-                <BugsTab
-                  repositoryId={repository.id}
-                  repositoryName={repository.fullName}
-                  initialFindings={bugs}
-                  onFindingsUpdated={setBugs}
-                  onOpenFile={openFile}
-                  onAskAI={handleAskAI}
-                />
-              )}
-              {activeTab === 'docs' && (
-                <DocsTab
-                  repositoryId={repository.id}
-                  repositoryName={repository.fullName}
-                  initialDocs={docs}
-                  onDocsUpdated={setDocs}
-                />
-              )}
-              {activeTab === 'health' && analysis && (
-                <HealthTab report={analysis.healthReport} />
-              )}
-            </>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.16, ease: RM_EASE }}
+              >
+                {activeTab === 'overview' && analysis && (
+                  <OverviewTab
+                    repository={repository}
+                    analysis={analysis}
+                    files={files}
+                    onOpenFile={(p) => openFile(p)}
+                  />
+                )}
+                {activeTab === 'explorer' && (
+                  <CodeExplorerTab
+                    repositoryId={repository.id}
+                    directoryTree={analysis?.directoryTree || []}
+                    files={files}
+                    onAskAI={handleAskAI}
+                  />
+                )}
+                {activeTab === 'chat' && (
+                  <ChatTab
+                    repositoryId={repository.id}
+                    repositoryName={repository.fullName}
+                    initialConversationId={convParam}
+                    pendingPrompt={pendingPrompt}
+                    onOpenFile={openFile}
+                  />
+                )}
+                {activeTab === 'architecture' && (
+                  <ArchitectureTab
+                    repositoryId={repository.id}
+                    repositoryName={repository.fullName}
+                    onOpenFile={openFile}
+                    onAskAI={handleAskAI}
+                  />
+                )}
+                {activeTab === 'bugs' && (
+                  <BugsTab
+                    repositoryId={repository.id}
+                    repositoryName={repository.fullName}
+                    initialFindings={bugs}
+                    onFindingsUpdated={setBugs}
+                    onOpenFile={openFile}
+                    onAskAI={handleAskAI}
+                  />
+                )}
+                {activeTab === 'docs' && (
+                  <DocsTab
+                    repositoryId={repository.id}
+                    repositoryName={repository.fullName}
+                    initialDocs={docs}
+                    onDocsUpdated={setDocs}
+                  />
+                )}
+                {activeTab === 'health' && analysis && (
+                  <HealthTab report={analysis.healthReport} />
+                )}
+              </motion.div>
+            </AnimatePresence>
           )}
-        </div>
+        </motion.div>
       )}
 
       <CodeViewerModal
@@ -464,4 +504,8 @@ export function RepoWorkspacePage() {
       />
     </WorkspaceLayout>
   );
+}
+
+function repoProgressClamp(value: number): number {
+  return Math.max(0, Math.min(100, value || 0));
 }

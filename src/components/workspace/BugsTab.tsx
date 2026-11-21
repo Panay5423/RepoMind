@@ -17,6 +17,7 @@ import type {
 } from '../../../shared/types.ts';
 import { api } from '../../lib/api.ts';
 import { useToast } from '../../context/ToastContext.tsx';
+import { PRIMARY_BLUE_BTN, SECONDARY_WHITE_BTN } from '../ui/PremiumPrimitives.tsx';
 
 interface BugsTabProps {
   repositoryId: string;
@@ -28,11 +29,11 @@ interface BugsTabProps {
 }
 
 const SEVERITY_COLORS: Record<FindingSeverity, string> = {
-  critical: 'text-rose-400',
-  high: 'text-orange-400',
-  medium: 'text-amber-400',
-  low: 'text-blue-400',
-  info: 'text-slate-400',
+  critical: 'text-[#E11D48]',
+  high: 'text-[#EA580C]',
+  medium: 'text-[#D97706]',
+  low: 'text-[#2563EB]',
+  info: 'text-[#64748B]',
 };
 
 export function BugsTab({
@@ -116,25 +117,35 @@ export function BugsTab({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-white/[0.08] bg-[#111827] p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-2xs">
         <div>
-          <h2 className="font-display text-base font-semibold text-white">
-            Bug Detective & Security Inspection
+          <h2 className="font-display text-base font-bold text-[#0B1F3A]">
+            Bug Detective &amp; Security Inspection
           </h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-[#64748B]">
             Verified static checks (regex/secret/dependency rules) are separated from AI-generated
             potential issue hypotheses.
           </p>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-mono text-slate-400">
-            <span className="tabular-nums text-slate-200">{staticCount} verified static checks</span>
-            <span aria-hidden="true">·</span>
-            <span className="tabular-nums text-slate-200">{aiCount} AI potential issues</span>
-            <span aria-hidden="true">·</span>
-            <span className="tabular-nums text-rose-400">{severityCounts.critical} critical</span>
-            <span aria-hidden="true">·</span>
-            <span className="tabular-nums text-orange-400">{severityCounts.high} high</span>
-            <span aria-hidden="true">·</span>
-            <span className="tabular-nums text-amber-400">{severityCounts.medium} medium</span>
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-mono text-[#475569]">
+            <span className="tabular-nums font-semibold text-[#0F172A]">
+              {staticCount} verified static checks
+            </span>
+            <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
+            <span className="tabular-nums font-semibold text-[#0F172A]">
+              {aiCount} AI potential issues
+            </span>
+            <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
+            <span className="tabular-nums font-semibold text-[#E11D48]">
+              {severityCounts.critical} critical
+            </span>
+            <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
+            <span className="tabular-nums font-semibold text-[#EA580C]">
+              {severityCounts.high} high
+            </span>
+            <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
+            <span className="tabular-nums font-semibold text-[#D97706]">
+              {severityCounts.medium} medium
+            </span>
           </div>
         </div>
 
@@ -143,9 +154,9 @@ export function BugsTab({
             <button
               type="button"
               onClick={handleExportBugs}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/[0.04] whitespace-nowrap"
+              className={`${SECONDARY_WHITE_BTN} px-3 py-2 text-xs`}
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 text-[#475569]" />
               <span>Export (.md)</span>
             </button>
           )}
@@ -153,7 +164,7 @@ export function BugsTab({
             type="button"
             disabled={scanning}
             onClick={() => void handleDeepScan()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition-colors disabled:opacity-60 whitespace-nowrap"
+            className={`${PRIMARY_BLUE_BTN} px-4 py-2 text-xs`}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${scanning ? 'animate-spin' : ''}`} />
             <span>{scanning ? 'Inspecting Codebase...' : 'Run Deep AI Scan'}</span>
@@ -163,7 +174,7 @@ export function BugsTab({
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="inline-flex flex-wrap items-center gap-1 p-1 rounded-lg bg-[#111827] border border-white/[0.08]">
+        <div className="inline-flex flex-wrap items-center gap-1 p-1 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs">
           {[
             { id: 'all', label: 'All Findings' },
             { id: 'verified_static_check', label: 'Verified Static Checks' },
@@ -173,10 +184,10 @@ export function BugsTab({
               key={tab.id}
               type="button"
               onClick={() => setOriginFilter(tab.id as 'all' | FindingOrigin)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
                 originFilter === tab.id
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#2563EB] text-white'
+                  : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
               {tab.label}
@@ -186,20 +197,20 @@ export function BugsTab({
 
         <div className="flex items-center gap-2">
           <div className="relative flex-1 md:w-56">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Filter by file or keyword..."
-              className="w-full rounded-lg border border-white/10 bg-[#111827] pl-8 pr-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-8 pr-3 py-2 text-xs text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB]"
             />
           </div>
           <select
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value as 'all' | FindingSeverity)}
             aria-label="Filter by severity"
-            className="rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+            className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-xs font-medium text-[#0F172A] focus:outline-none focus:border-[#2563EB]"
           >
             <option value="all">All Severities</option>
             <option value="critical">Critical</option>
@@ -212,41 +223,41 @@ export function BugsTab({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-white/[0.08] bg-[#111827] p-12 text-center">
-          <Bug className="w-8 h-8 text-slate-500 mx-auto mb-3" />
-          <p className="text-sm font-medium text-white">No findings match the current filter</p>
-          <p className="mt-1 text-xs text-slate-400">
+        <div className="rounded-2xl border border-[#E2E8F0] bg-white p-12 text-center shadow-2xs">
+          <Bug className="w-8 h-8 text-[#64748B] mx-auto mb-3" />
+          <p className="text-sm font-semibold text-[#0F172A]">No findings match the current filter</p>
+          <p className="mt-1 text-xs text-[#64748B]">
             Try switching filters or run a deep AI inspection across high-complexity files.
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           {filtered.map((finding) => (
             <article
               key={finding.id}
-              className="rounded-xl border border-white/[0.08] bg-[#111827] p-5 space-y-3"
+              className="rounded-2xl border border-[#E2E8F0] bg-white p-5 space-y-3 shadow-2xs hover:border-[#93C5FD] transition-all"
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                 <div className="flex items-start gap-2.5">
                   {finding.origin === 'verified_static_check' ? (
-                    <ShieldAlert className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
+                    <ShieldAlert className="w-4 h-4 text-[#E11D48] mt-0.5 shrink-0" />
                   ) : (
-                    <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                    <AlertCircle className="w-4 h-4 text-[#D97706] mt-0.5 shrink-0" />
                   )}
                   <div>
-                    <h3 className="text-sm font-semibold text-white">{finding.title}</h3>
+                    <h3 className="text-sm font-bold text-[#0F172A]">{finding.title}</h3>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-mono">
-                      <span className={`uppercase font-semibold ${SEVERITY_COLORS[finding.severity]}`}>
+                      <span className={`uppercase font-bold ${SEVERITY_COLORS[finding.severity]}`}>
                         {finding.severity}
                       </span>
-                      <span className="text-slate-600">·</span>
-                      <span className="text-slate-300">
+                      <span className="text-[#CBD5E1]">·</span>
+                      <span className="text-[#475569]">
                         {finding.origin === 'verified_static_check'
                           ? 'Verified Static Check'
                           : 'AI Potential Issue'}
                       </span>
-                      <span className="text-slate-600">·</span>
-                      <span className="capitalize text-slate-400">{finding.category}</span>
+                      <span className="text-[#CBD5E1]">·</span>
+                      <span className="capitalize text-[#64748B]">{finding.category}</span>
                     </div>
                   </div>
                 </div>
@@ -262,9 +273,9 @@ export function BugsTab({
                         'refactor'
                       )
                     }
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-white/10 bg-[#0B0F19] hover:border-blue-500/40 text-xs text-slate-200 hover:text-white"
+                    className={`${SECONDARY_WHITE_BTN} px-2.5 py-1.5 text-xs`}
                   >
-                    <MessageSquareCode className="w-3.5 h-3.5 text-blue-400" />
+                    <MessageSquareCode className="w-3.5 h-3.5 text-[#2563EB]" />
                     <span>Ask AI Fix</span>
                   </button>
                   <button
@@ -272,7 +283,7 @@ export function BugsTab({
                     onClick={() =>
                       onOpenFile(finding.filePath, finding.startLine, finding.endLine)
                     }
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-white/10 bg-[#0B0F19] hover:border-blue-500/40 text-xs font-mono text-blue-300"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] text-xs font-mono font-medium text-[#2563EB] transition-colors"
                   >
                     <FileCode2 className="w-3.5 h-3.5" />
                     <span>
@@ -283,11 +294,11 @@ export function BugsTab({
                 </div>
               </div>
 
-              <p className="text-sm text-slate-300 leading-relaxed">{finding.explanation}</p>
+              <p className="text-sm text-[#334155] leading-relaxed">{finding.explanation}</p>
 
-              <div className="rounded-lg border border-white/[0.06] bg-[#0B0F19] p-3.5">
-                <p className="text-[11px] font-medium text-emerald-400 mb-1">Suggested Fix</p>
-                <p className="text-xs text-slate-300 leading-relaxed">{finding.suggestedFix}</p>
+              <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3.5">
+                <p className="text-[11px] font-semibold text-[#059669] mb-1">Suggested Fix</p>
+                <p className="text-xs text-[#334155] leading-relaxed">{finding.suggestedFix}</p>
               </div>
             </article>
           ))}

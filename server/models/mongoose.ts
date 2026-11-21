@@ -5,10 +5,18 @@ const UserSchema = new Schema(
     _id: { type: String, required: true },
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, index: true },
-    passwordHash: { type: String, required: true },
+    passwordHash: { type: String, required: false, default: undefined },
+    roleTitle: { type: String, default: undefined, trim: true },
+    authProvider: {
+      type: String,
+      enum: ['local', 'github', 'hybrid'],
+      default: 'local',
+    },
+    githubId: { type: String, index: true, sparse: true, default: undefined },
     githubAccessToken: { type: String, default: undefined },
     githubUsername: { type: String, default: undefined },
     githubAvatarUrl: { type: String, default: undefined },
+    lastLoginAt: { type: String, default: undefined },
   },
   { timestamps: true }
 );

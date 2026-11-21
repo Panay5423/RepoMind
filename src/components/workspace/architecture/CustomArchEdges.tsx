@@ -37,12 +37,12 @@ export const ArchRelationEdge = memo(function ArchRelationEdge({
 
   const isHighlighted = Boolean(selected || data?.isHighlighted || data?.isFlowEdge || hovered);
   const strokeColor = selected
-    ? '#FBBF24'
+    ? '#F59E0B'
     : data?.isFlowEdge
-      ? '#22D3EE'
+      ? '#0284C7'
       : data?.isHighlighted || hovered
-        ? '#60A5FA'
-        : data?.color || '#475569';
+        ? '#2563EB'
+        : data?.color || '#64748B';
 
   const strokeOpacity = data?.isDimmed && !isHighlighted ? 0.16 : isHighlighted ? 0.96 : 0.72;
   const strokeWidth = selected ? 2.2 : isHighlighted ? 1.85 : 1.25;
@@ -73,7 +73,11 @@ export const ArchRelationEdge = memo(function ArchRelationEdge({
 
       {/* Directional flowing particle only on active/selected/flow edges to keep GPU idle otherwise */}
       {(selected || data?.isFlowEdge || data?.isHighlighted) && (
-        <circle r={selected ? 2.8 : 2.2} fill={selected ? '#FBBF24' : '#60A5FA'} opacity={0.9}>
+        <circle
+          r={selected ? 2.9 : 2.3}
+          fill={selected ? '#F59E0B' : data?.isFlowEdge ? '#0284C7' : '#2563EB'}
+          opacity={0.92}
+        >
           <animateMotion dur={data?.isFlowEdge ? '1.6s' : '2.2s'} repeatCount="indefinite" path={edgePath} />
         </circle>
       )}
@@ -84,12 +88,12 @@ export const ArchRelationEdge = memo(function ArchRelationEdge({
             style={{
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             }}
-            className={`pointer-events-none nodrag nopan px-2 py-0.5 rounded border text-[10px] font-mono leading-tight transition-opacity duration-150 ${
+            className={`pointer-events-none nodrag nopan px-2 py-0.5 rounded-md border text-[10px] font-mono leading-tight shadow-xs transition-opacity duration-150 ${
               selected
-                ? 'bg-[#151D2B] border-[#FBBF24]/50 text-[#FBBF24]'
+                ? 'bg-[#FFFBEB] border-[#FCD34D] text-[#B45309]'
                 : data?.isFlowEdge
-                  ? 'bg-[#151D2B] border-[#22D3EE]/45 text-[#22D3EE]'
-                  : 'bg-[#0D111B]/95 border-[#202A3A] text-[#CBD5E1]'
+                  ? 'bg-[#F0F9FF] border-[#7DD3FC] text-[#0369A1]'
+                  : 'bg-white/95 border-[#E2E8F0] text-[#0F172A]'
             }`}
           >
             {displayLabel}

@@ -16,23 +16,22 @@ import type {
   RepositoryFileDTO,
 } from '../../shared/types.ts';
 
-const TOKEN_KEY = 'repomind_jwt';
+// Hold Bearer token strictly in JS memory (never localStorage/sessionStorage);
+// HttpOnly Secure SameSite=None Partitioned session cookie handles reload persistence.
+let inMemoryToken: string | null = null;
 
 export function getStoredToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return inMemoryToken;
 }
 
 export function setStoredToken(token: string | null): void {
-  if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
-  } else {
-    localStorage.removeItem(TOKEN_KEY);
-  }
+  inMemoryToken = token;
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getStoredToken();
   const headers = new Headers(options.headers || {});
+  headers.set('X-Requested-With', 'RepoMind');
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
@@ -40,7 +39,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers.set('Content-Type', 'application/json');
   }
 
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(path, {
+    ...options,
+    headers,
+    credentials: 'include',
+  });
   const text = await res.text();
   let data: unknown = {};
   try {
@@ -76,7 +79,10 @@ export interface GitHubRepoItem {
 
 export const api = {
   auth: {
-    register: (body: { name: string; email: string; password: string }) =>
+    providers: () =>
+      request<{ githubOAuthConfigured: boolean; callbackUrl: string }>('/api/auth/providers'),
+    githubUrl: () => request<{ url: string }>('/api/auth/github/url'),
+    register: (body: { name: string; email: string; password: string; roleTitle?: string }) =>
       request<{ token: string; user: PublicUser }>('/api/auth/register', {
         method: 'POST',
         body: JSON.stringify(body),
@@ -90,7 +96,18 @@ export const api = {
       request<{ token: string; user: PublicUser }>('/api/auth/demo', {
         method: 'POST',
       }),
+    logout: () => request<{ ok: boolean }>('/api/auth/logout', { method: 'POST' }),
     me: () => request<{ user: PublicUser }>('/api/auth/me'),
+    updateProfile: (body: {
+      name?: string;
+      roleTitle?: string;
+      currentPassword?: string;
+      newPassword?: string;
+    }) =>
+      request<{ user: PublicUser }>('/api/auth/profile', {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
   },
 
   github: {

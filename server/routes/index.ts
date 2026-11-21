@@ -1,11 +1,20 @@
 import { Router } from 'express';
 import { aiLimiter, apiLimiter, authLimiter, requireAuth } from '../middleware/auth.ts';
 import { zipUploadMiddleware } from '../middleware/upload.ts';
-import { demoLogin, getMe, login, register } from '../controllers/authController.ts';
+import {
+  demoLogin,
+  getAuthProviders,
+  getMe,
+  login,
+  logout,
+  register,
+  updateProfile,
+} from '../controllers/authController.ts';
 import {
   disconnectGitHub,
   getGitHubAuthUrl,
   getGitHubStatus,
+  getPublicGitHubAuthUrl,
   handleGitHubCallback,
   listMyGitHubRepos,
 } from '../controllers/githubController.ts';
@@ -51,10 +60,14 @@ apiRouter.get('/health', (_req, res) => {
 });
 
 // Authentication
+apiRouter.get('/auth/providers', apiLimiter, getAuthProviders);
+apiRouter.get('/auth/github/url', authLimiter, getPublicGitHubAuthUrl);
 apiRouter.post('/auth/register', authLimiter, register);
 apiRouter.post('/auth/login', authLimiter, login);
 apiRouter.post('/auth/demo', authLimiter, demoLogin);
+apiRouter.post('/auth/logout', apiLimiter, logout);
 apiRouter.get('/auth/me', apiLimiter, requireAuth, getMe);
+apiRouter.patch('/auth/profile', apiLimiter, requireAuth, updateProfile);
 
 // GitHub Integration
 apiRouter.get('/github/status', apiLimiter, requireAuth, getGitHubStatus);

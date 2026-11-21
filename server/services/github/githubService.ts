@@ -41,15 +41,18 @@ export function buildGitHubOAuthUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: env.githubClientId,
     redirect_uri: callbackUri,
-    scope: 'read:user repo',
+    scope: 'read:user user:email repo',
     state,
   });
   return `https://github.com/login/oauth/authorize?${params.toString()}`;
 }
 
 export async function exchangeGitHubCode(code: string): Promise<{
+  id: string;
   accessToken: string;
   username: string;
+  name: string;
+  email: string;
   avatarUrl?: string;
 }> {
   const callbackUri = env.githubCallbackUrl || `${env.appUrl}/auth/github/callback`;
@@ -80,10 +83,48 @@ export async function exchangeGitHubCode(code: string): Promise<{
   if (!userRes.ok) {
     throw new Error('Failed to fetch GitHub user profile.');
   }
-  const profile = (await userRes.json()) as { login: string; avatar_url?: string };
+  const profile = (await userRes.json()) as {
+    id: number;
+    login: string;
+    name?: string | null;
+    email?: string | null;
+    avatar_url?: string;
+  };
+
+  let resolvedEmail = (profile.email || '').trim().toLowerCase();
+  if (!resolvedEmail) {
+    try {
+      const emailsRes = await fetch('https://api.github.com/user/emails', {
+        headers: githubHeaders(tokenData.access_token),
+      });
+      if (emailsRes.ok) {
+        const emails = (await emailsRes.json()) as Array<{
+          email: string;
+          primary: boolean;
+          verified: boolean;
+        }>;
+        const primaryVerified =
+          emails.find((e) => e.primary && e.verified) ||
+          emails.find((e) => e.verified) ||
+          emails[0];
+        if (primaryVerified?.email) {
+          resolvedEmail = primaryVerified.email.trim().toLowerCase();
+        }
+      }
+    } catch {
+      // fallback below if user:email scope wasn't granted
+    }
+  }
+  if (!resolvedEmail) {
+    resolvedEmail = `${profile.login.toLowerCase()}@users.noreply.github.com`;
+  }
+
   return {
+    id: String(profile.id),
     accessToken: tokenData.access_token,
     username: profile.login,
+    name: (profile.name || profile.login || 'GitHub Developer').trim(),
+    email: resolvedEmail,
     avatarUrl: profile.avatar_url,
   };
 }

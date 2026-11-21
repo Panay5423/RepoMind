@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
 
 type ToastVariant = 'success' | 'error' | 'info';
@@ -40,33 +41,46 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         aria-live="polite"
         className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"
       >
-        {toasts.map((toast) => {
-          const icon =
-            toast.variant === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            ) : toast.variant === 'error' ? (
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-            ) : (
-              <Info className="w-4 h-4 text-blue-400 shrink-0" />
-            );
-          return (
-            <div
-              key={toast.id}
-              className="pointer-events-auto flex items-start gap-3 rounded-lg border border-white/10 bg-[#111827] px-4 py-3 text-sm text-slate-100 shadow-lg"
-            >
-              <div className="mt-0.5">{icon}</div>
-              <p className="flex-1 leading-snug">{toast.message}</p>
-              <button
-                type="button"
-                onClick={() => dismiss(toast.id)}
-                className="text-slate-400 hover:text-white transition-colors shrink-0"
-                aria-label="Dismiss notification"
+        <AnimatePresence>
+          {toasts.map((toast) => {
+            const icon =
+              toast.variant === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
+              ) : toast.variant === 'error' ? (
+                <AlertCircle className="w-4 h-4 text-[#E11D48] shrink-0" />
+              ) : (
+                <Info className="w-4 h-4 text-[#2563EB] shrink-0" />
+              );
+            const ringStyle =
+              toast.variant === 'success'
+                ? 'border-[#A7F3D0]'
+                : toast.variant === 'error'
+                  ? 'border-[#FECDD3]'
+                  : 'border-[#BFDBFE]';
+
+            return (
+              <motion.div
+                key={toast.id}
+                initial={{ opacity: 0, y: 12, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className={`pointer-events-auto flex items-start gap-3 rounded-2xl border ${ringStyle} bg-white/95 backdrop-blur-md px-4 py-3 text-[13px] text-[#0F172A] shadow-[0_12px_32px_-8px_rgba(15,23,42,0.14),0_2px_6px_rgba(37,99,235,0.08)]`}
               >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          );
-        })}
+                <div className="mt-0.5">{icon}</div>
+                <p className="flex-1 leading-snug font-medium text-[#0F172A]">{toast.message}</p>
+                <button
+                  type="button"
+                  onClick={() => dismiss(toast.id)}
+                  className="text-[#64748B] hover:text-[#0F172A] transition-colors shrink-0 p-0.5 rounded-md hover:bg-[#F1F5F9]"
+                  aria-label="Dismiss notification"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
     </ToastContext.Provider>
   );

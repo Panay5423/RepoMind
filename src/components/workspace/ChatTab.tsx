@@ -14,6 +14,7 @@ import {
 import type { ChatMode, ConversationDTO, MessageDTO } from '../../../shared/types.ts';
 import { api } from '../../lib/api.ts';
 import { useToast } from '../../context/ToastContext.tsx';
+import { PRIMARY_BLUE_BTN, SECONDARY_WHITE_BTN } from '../ui/PremiumPrimitives.tsx';
 
 export interface PendingChatPrompt {
   text: string;
@@ -68,7 +69,6 @@ export function ChatTab({
   const lastProcessedNonceRef = useRef<number | null>(null);
   const { notify } = useToast();
 
-  // Reset and load conversations whenever repositoryId changes
   useEffect(() => {
     let active = true;
     setLoadingList(true);
@@ -136,7 +136,6 @@ export function ChatTab({
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, sending]);
 
-  // Handle cross-tab pending prompt injection
   useEffect(() => {
     if (!pendingPrompt || loadingList) return;
     if (lastProcessedNonceRef.current === pendingPrompt.nonce) return;
@@ -303,34 +302,34 @@ export function ChatTab({
   const activeModeMeta = CHAT_MODES.find((m) => m.id === mode)!;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 rounded-xl border border-white/[0.08] bg-[#111827] overflow-hidden min-h-[650px]">
+    <div className="grid grid-cols-1 lg:grid-cols-12 rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_30px_-14px_rgba(37,99,235,0.1)] overflow-hidden min-h-[650px]">
       {/* Conversations Sidebar */}
-      <aside className="lg:col-span-3 border-b lg:border-b-0 lg:border-r border-white/[0.08] bg-[#0B0F19]/50 flex flex-col">
-        <div className="p-4 border-b border-white/[0.08] flex items-center justify-between">
-          <span className="text-xs font-semibold text-slate-300">
+      <aside className="lg:col-span-3 border-b lg:border-b-0 lg:border-r border-[#E2E8F0] bg-[#F8FAFC] flex flex-col">
+        <div className="p-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between">
+          <span className="text-xs font-bold text-[#0F172A]">
             Conversations ({conversations.length})
           </span>
           <button
             type="button"
             onClick={() => void handleNewConversation()}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
+            className={`${PRIMARY_BLUE_BTN} px-2.5 py-1.5 text-xs`}
           >
             <MessageSquarePlus className="w-3.5 h-3.5" />
             <span>New</span>
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 max-h-48 lg:max-h-[590px]">
+        <div className="flex-1 overflow-y-auto p-2.5 space-y-1 max-h-48 lg:max-h-[590px]">
           {loadingList ? (
-            <div className="p-3 text-xs text-slate-500">Loading chats...</div>
+            <div className="p-3 text-xs text-[#64748B]">Loading chats...</div>
           ) : (
             conversations.map((conv) => (
               <div
                 key={conv.id}
-                className={`group flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-xs transition-colors ${
+                className={`group flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs transition-colors ${
                   activeConvId === conv.id
-                    ? 'bg-[#111827] text-white border border-white/10'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                    ? 'bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] shadow-2xs'
+                    : 'text-[#475569] hover:text-[#0F172A] hover:bg-white'
                 }`}
               >
                 <button
@@ -341,8 +340,8 @@ export function ChatTab({
                   }}
                   className="flex-1 min-w-0 text-left"
                 >
-                  <p className="font-medium truncate">{conv.title}</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
+                  <p className="font-semibold truncate">{conv.title}</p>
+                  <p className="text-[11px] text-[#64748B] mt-0.5">
                     {new Date(conv.updatedAt).toLocaleDateString()}
                   </p>
                 </button>
@@ -352,7 +351,7 @@ export function ChatTab({
                   onClick={() => void handleDeleteConversation(conv.id)}
                   title="Delete conversation"
                   aria-label={`Delete ${conv.title}`}
-                  className="p-1 rounded text-slate-500 hover:text-rose-400 opacity-70 group-hover:opacity-100 transition-opacity shrink-0 disabled:opacity-40"
+                  className="p-1 rounded text-[#64748B] hover:text-[#E11D48] opacity-70 group-hover:opacity-100 transition-opacity shrink-0 disabled:opacity-40"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -363,27 +362,27 @@ export function ChatTab({
       </aside>
 
       {/* Main Chat Viewport */}
-      <div className="lg:col-span-9 flex flex-col h-[680px]">
+      <div className="lg:col-span-9 flex flex-col h-[680px] bg-white">
         {/* Mode & Export Bar */}
-        <div className="px-5 py-2.5 border-b border-white/[0.08] bg-[#0B0F19]/40 flex flex-wrap items-center justify-between gap-3">
+        <div className="px-5 py-3 border-b border-[#E2E8F0] bg-[#F8FAFC]/80 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-[#0B0F19] border border-white/[0.08]">
+            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-white border border-[#E2E8F0]">
               {CHAT_MODES.map((m) => (
                 <button
                   key={m.id}
                   type="button"
                   onClick={() => setMode(m.id)}
-                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
                     mode === m.id
-                      ? 'bg-blue-600 text-white'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-[#2563EB] text-white shadow-2xs'
+                      : 'text-[#64748B] hover:text-[#0F172A]'
                   }`}
                 >
                   {m.label}
                 </button>
               ))}
             </div>
-            <span className="hidden sm:inline text-[11px] text-slate-400">
+            <span className="hidden sm:inline text-[11px] text-[#64748B]">
               {activeModeMeta.hint}
             </span>
           </div>
@@ -392,26 +391,26 @@ export function ChatTab({
             <button
               type="button"
               onClick={handleExportChat}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/[0.04]"
+              className={`${SECONDARY_WHITE_BTN} px-2.5 py-1 text-xs`}
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 text-[#475569]" />
               <span>Export</span>
             </button>
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F8FAFC]/50">
           {loadingMessages ? (
             <div className="space-y-3">
-              <div className="h-16 rounded-lg bg-white/[0.04] animate-pulse" />
-              <div className="h-28 rounded-lg bg-white/[0.04] animate-pulse" />
+              <div className="h-16 rounded-xl bg-white border border-[#E2E8F0] animate-pulse" />
+              <div className="h-28 rounded-xl bg-white border border-[#E2E8F0] animate-pulse" />
             </div>
           ) : messages.length === 0 ? (
             <div className="py-6 max-w-2xl">
-              <h3 className="font-display text-lg font-semibold text-white">
+              <h3 className="font-display text-lg font-bold text-[#0B1F3A]">
                 Ask anything about {repositoryName}
               </h3>
-              <p className="mt-1.5 text-sm text-slate-400">
+              <p className="mt-1.5 text-sm text-[#475569]">
                 Answers are grounded via vector RAG retrieval across your indexed source chunks and
                 cite exact file paths and line numbers.
               </p>
@@ -422,7 +421,7 @@ export function ChatTab({
                     type="button"
                     disabled={sending}
                     onClick={() => void submitQuestion(q)}
-                    className="text-left p-3 rounded-lg border border-white/[0.08] bg-[#0B0F19] hover:border-blue-500/40 text-xs text-slate-300 hover:text-white transition-colors disabled:opacity-50"
+                    className="text-left p-3.5 rounded-xl border border-[#E2E8F0] bg-white hover:border-[#93C5FD] hover:bg-[#EFF6FF]/40 text-xs font-medium text-[#334155] hover:text-[#2563EB] shadow-2xs transition-all disabled:opacity-50"
                   >
                     {q}
                   </button>
@@ -435,22 +434,22 @@ export function ChatTab({
                 key={msg.id}
                 className={
                   msg.role === 'user'
-                    ? 'ml-auto max-w-2xl rounded-xl bg-blue-600/15 border border-blue-500/30 px-4 py-3 text-sm text-white'
+                    ? 'ml-auto max-w-2xl rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] px-4 py-3 text-sm text-[#0B1F3A] font-medium shadow-2xs'
                     : 'max-w-3xl space-y-3'
                 }
               >
                 {msg.role === 'user' ? (
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                 ) : (
-                  <div className="rounded-xl border border-white/[0.08] bg-[#0B0F19] p-5 space-y-4">
-                    <div className="flex items-center justify-between gap-2 pb-2 border-b border-white/[0.06]">
-                      <span className="text-[11px] font-mono text-slate-400">
+                  <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 space-y-4 shadow-[0_4px_16px_-6px_rgba(15,23,42,0.06)]">
+                    <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#F1F5F9]">
+                      <span className="text-[11px] font-mono font-semibold text-[#2563EB]">
                         RepoMind Grounded Answer
                       </span>
                       <button
                         type="button"
                         onClick={() => void handleCopyMessage(msg.content)}
-                        className="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-white transition-colors"
+                        className="inline-flex items-center gap-1 text-[11px] text-[#64748B] hover:text-[#0F172A] transition-colors"
                       >
                         <Copy className="w-3 h-3" />
                         <span>Copy</span>
@@ -462,8 +461,8 @@ export function ChatTab({
                     </div>
 
                     {msg.citations && msg.citations.length > 0 && (
-                      <div className="pt-3 border-t border-white/[0.08]">
-                        <p className="text-[11px] font-medium text-slate-400 mb-2">
+                      <div className="pt-3 border-t border-[#E2E8F0]">
+                        <p className="text-[11px] font-semibold text-[#64748B] mb-2">
                           Verified File References
                         </p>
                         <div className="flex flex-wrap gap-2">
@@ -474,7 +473,7 @@ export function ChatTab({
                               onClick={() =>
                                 onOpenFile(cit.filePath, cit.startLine, cit.endLine)
                               }
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-white/10 bg-[#111827] hover:border-blue-500/50 text-xs font-mono text-blue-300 transition-colors"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] text-xs font-mono font-medium text-[#2563EB] transition-colors"
                             >
                               <FileCode2 className="w-3.5 h-3.5 shrink-0" />
                               <span>
@@ -501,7 +500,7 @@ export function ChatTab({
                             type="button"
                             disabled={sending}
                             onClick={() => void submitQuestion(fup)}
-                            className="text-left text-xs px-3 py-1.5 rounded-md border border-white/[0.08] text-slate-300 hover:text-white hover:border-white/20 transition-colors"
+                            className="text-left text-xs px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] text-[#475569] hover:text-[#2563EB] hover:border-[#93C5FD] transition-colors"
                           >
                             {fup}
                           </button>
@@ -515,22 +514,22 @@ export function ChatTab({
           )}
 
           {sending && (
-            <div className="max-w-xl rounded-xl border border-blue-500/20 bg-[#0B0F19] p-4 text-xs text-slate-300">
+            <div className="max-w-xl rounded-2xl border border-[#BFDBFE] bg-[#EFF6FF] p-4 text-xs font-medium text-[#2563EB]">
               Retrieving matching code chunks and generating grounded response...
             </div>
           )}
 
           {chatError && (
-            <div className="max-w-2xl rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 flex items-start justify-between gap-4">
-              <div className="flex items-start gap-2.5 text-xs text-rose-200">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="max-w-2xl rounded-2xl border border-[#FECDD3] bg-[#FFF1F2] p-4 flex items-start justify-between gap-4">
+              <div className="flex items-start gap-2.5 text-xs text-[#E11D48]">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{chatError}</span>
               </div>
               {lastFailedPrompt && (
                 <button
                   type="button"
                   onClick={() => void submitQuestion(lastFailedPrompt)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#E11D48] hover:bg-[#BE123C] text-white text-xs font-medium shrink-0"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Retry</span>
@@ -544,7 +543,7 @@ export function ChatTab({
 
         <form
           onSubmit={handleFormSubmit}
-          className="p-4 border-t border-white/[0.08] bg-[#0B0F19] flex items-end gap-3"
+          className="p-4 border-t border-[#E2E8F0] bg-white flex items-end gap-3"
         >
           <textarea
             ref={textareaRef}
@@ -553,12 +552,12 @@ export function ChatTab({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleTextareaKeyDown}
             placeholder="Ask about architecture, routes, functions, bugs, or paste a snippet (Enter to send, Shift+Enter for newline)..."
-            className="flex-1 resize-none rounded-lg border border-white/10 bg-[#111827] px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 leading-relaxed"
+            className="flex-1 resize-none rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-2.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:bg-white focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 leading-relaxed transition-all"
           />
           <button
             type="submit"
             disabled={sending || !input.trim()}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 shrink-0"
+            className={`${PRIMARY_BLUE_BTN} px-4 py-2.5 text-sm`}
           >
             <Send className="w-4 h-4" />
             <span>Send</span>

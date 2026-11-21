@@ -1,4 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { SECONDARY_WHITE_BTN } from './ui/PremiumPrimitives.tsx';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -19,43 +21,59 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className="w-full max-w-md rounded-xl border border-white/10 bg-[#111827] p-6 shadow-2xl">
-        <div className="flex items-start gap-3">
-          <div className="rounded-lg bg-rose-500/10 p-2 text-rose-400 shrink-0">
-            <AlertTriangle className="w-5 h-5" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-base font-semibold text-white">{title}</h3>
-            <p className="mt-1.5 text-sm text-slate-400 leading-relaxed">{description}</p>
-          </div>
-        </div>
-        <div className="mt-6 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            disabled={loading}
-            onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white border border-white/10 rounded-lg hover:bg-white/[0.04] transition-colors whitespace-nowrap shrink-0"
+    <AnimatePresence>
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16 }}
+            onClick={loading ? undefined : onCancel}
+            className="fixed inset-0 bg-[#0B1F3A]/35 backdrop-blur-xs"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10 w-full max-w-md rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_24px_50px_-12px_rgba(11,31,58,0.2)]"
           >
-            Cancel
-          </button>
-          <button
-            type="button"
-            disabled={loading}
-            onClick={onConfirm}
-            className="px-4 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-500 rounded-lg transition-colors disabled:opacity-60 whitespace-nowrap shrink-0"
-          >
-            {loading ? 'Processing...' : confirmLabel}
-          </button>
+            <div className="flex items-start gap-3.5">
+              <div className="rounded-xl border border-[#FECDD3] bg-[#FFF1F2] p-2.5 text-[#E11D48] shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display text-[15px] font-semibold text-[#0F172A]">{title}</h3>
+                <p className="mt-1.5 text-[13px] text-[#64748B] leading-relaxed">{description}</p>
+              </div>
+            </div>
+            <div className="mt-6 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={onCancel}
+                className={`${SECONDARY_WHITE_BTN} h-9 px-4 text-[12px]`}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={onConfirm}
+                className="h-9 px-4 text-[12px] font-semibold text-white bg-[#E11D48] hover:bg-[#BE123C] rounded-xl shadow-sm shadow-[#E11D48]/20 transition-all disabled:opacity-60 whitespace-nowrap shrink-0"
+              >
+                {loading ? 'Processing...' : confirmLabel}
+              </button>
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

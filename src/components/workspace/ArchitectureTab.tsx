@@ -592,11 +592,11 @@ function ArchitectureCanvasWorkspace({
           (activeFlowActive && !isFlowEdge) || (anchorId && !highlight)
         );
         const markerColor = isEdgeSelected
-          ? '#FBBF24'
+          ? '#F59E0B'
           : isFlowEdge
-            ? '#22D3EE'
+            ? '#0284C7'
             : highlight
-              ? '#60A5FA'
+              ? '#2563EB'
               : relStyle.color;
 
         return {
@@ -865,46 +865,46 @@ function ArchitectureCanvasWorkspace({
   if (loading && !intelligence) {
     return (
       <div className="space-y-3">
-        <div className="rounded-lg border border-[#202A3A] bg-[#0D111B] px-4 py-3 flex items-center justify-between gap-4">
+        <div className="rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 flex items-center justify-between gap-4 shadow-2xs">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#151D2B] animate-pulse" />
+            <div className="w-8 h-8 rounded-xl bg-[#EFF6FF] animate-pulse" />
             <div className="space-y-1.5">
-              <div className="h-3 w-28 rounded bg-[#151D2B] animate-pulse" />
-              <div className="h-5 w-48 rounded bg-[#151D2B] animate-pulse" />
+              <div className="h-3 w-28 rounded bg-[#F1F5F9] animate-pulse" />
+              <div className="h-5 w-48 rounded bg-[#F1F5F9] animate-pulse" />
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-8 w-56 rounded-lg bg-[#151D2B] animate-pulse hidden sm:block" />
-            <div className="h-8 w-44 rounded-lg bg-[#151D2B] animate-pulse" />
+            <div className="h-8 w-56 rounded-xl bg-[#F1F5F9] animate-pulse hidden sm:block" />
+            <div className="h-8 w-44 rounded-xl bg-[#F1F5F9] animate-pulse" />
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-          <div className="lg:col-span-8 h-[640px] rounded-lg border border-[#202A3A] bg-[#080B12] relative overflow-hidden flex flex-col items-center justify-center p-8">
+          <div className="lg:col-span-8 h-[640px] rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] relative overflow-hidden flex flex-col items-center justify-center p-8">
             <div className="relative w-full max-w-md space-y-5">
               <div className="flex items-center justify-between gap-6">
-                <div className="w-40 h-20 rounded-lg border border-[#202A3A] bg-[#101623] animate-pulse" />
-                <div className="w-40 h-20 rounded-lg border border-[#202A3A] bg-[#101623] animate-pulse" />
+                <div className="w-40 h-20 rounded-xl border border-[#E2E8F0] bg-white shadow-2xs animate-pulse" />
+                <div className="w-40 h-20 rounded-xl border border-[#E2E8F0] bg-white shadow-2xs animate-pulse" />
               </div>
               <div className="flex justify-center">
-                <div className="w-48 h-20 rounded-lg border border-[#60A5FA]/25 bg-[#101623] animate-pulse" />
+                <div className="w-48 h-20 rounded-xl border border-[#BFDBFE] bg-white shadow-2xs animate-pulse" />
               </div>
               <div className="flex items-center justify-between gap-6">
-                <div className="w-40 h-20 rounded-lg border border-[#202A3A] bg-[#101623] animate-pulse" />
-                <div className="w-40 h-20 rounded-lg border border-[#202A3A] bg-[#101623] animate-pulse" />
+                <div className="w-40 h-20 rounded-xl border border-[#E2E8F0] bg-white shadow-2xs animate-pulse" />
+                <div className="w-40 h-20 rounded-xl border border-[#E2E8F0] bg-white shadow-2xs animate-pulse" />
               </div>
             </div>
-            <div className="mt-6 flex items-center gap-2 text-[12px] font-mono text-[#94A3B8]">
-              <RefreshCw className="w-3.5 h-3.5 text-[#60A5FA] animate-spin" />
+            <div className="mt-6 flex items-center gap-2 text-[12px] font-mono text-[#64748B]">
+              <RefreshCw className="w-3.5 h-3.5 text-[#2563EB] animate-spin" />
               <span>Parsing repository AST and resolving dependency graph...</span>
             </div>
           </div>
 
-          <div className="lg:col-span-4 h-[640px] rounded-lg border border-[#202A3A] bg-[#101623] p-4 space-y-3 hidden lg:block">
-            <div className="h-14 rounded-lg bg-[#151D2B] animate-pulse" />
-            <div className="h-24 rounded-lg bg-[#0D111B] animate-pulse" />
-            <div className="h-28 rounded-lg bg-[#0D111B] animate-pulse" />
-            <div className="h-48 rounded-lg bg-[#080B12] animate-pulse" />
+          <div className="lg:col-span-4 h-[640px] rounded-2xl border border-[#E2E8F0] bg-white p-4 space-y-3 hidden lg:block">
+            <div className="h-14 rounded-xl bg-[#F8FAFC] animate-pulse" />
+            <div className="h-24 rounded-xl bg-[#F8FAFC] animate-pulse" />
+            <div className="h-28 rounded-xl bg-[#F8FAFC] animate-pulse" />
+            <div className="h-48 rounded-xl bg-[#F1F5F9] animate-pulse" />
           </div>
         </div>
       </div>
@@ -914,14 +914,14 @@ function ArchitectureCanvasWorkspace({
   // ERROR STATE: Clear Diagnostic Card
   if (error || !intelligence) {
     return (
-      <div className="rounded-lg border border-[#FB7185]/35 bg-[#101623] p-10 text-center max-w-xl mx-auto my-8">
-        <div className="w-11 h-11 rounded-lg border border-[#FB7185]/30 bg-[#FB7185]/10 flex items-center justify-center mx-auto mb-3.5">
-          <AlertCircle className="w-5 h-5 text-[#FB7185]" />
+      <div className="rounded-2xl border border-[#FECDD3] bg-white shadow-sm p-10 text-center max-w-xl mx-auto my-8">
+        <div className="w-11 h-11 rounded-xl border border-[#FECDD3] bg-[#FFF1F2] flex items-center justify-center mx-auto mb-3.5">
+          <AlertCircle className="w-5 h-5 text-[#E11D48]" />
         </div>
-        <h3 className="font-display text-[16px] font-semibold text-[#F1F5F9]">
+        <h3 className="font-display text-[16px] font-semibold text-[#0F172A]">
           Unable to build AST Architecture Graph
         </h3>
-        <p className="mt-1.5 text-[13px] text-[#94A3B8]">
+        <p className="mt-1.5 text-[13px] text-[#475569]">
           {error || 'No source files indexed yet for this repository.'}
         </p>
         <p className="mt-1 text-[11px] font-mono text-[#64748B]">
@@ -930,9 +930,9 @@ function ArchitectureCanvasWorkspace({
         <button
           type="button"
           onClick={() => void loadIntelligence(true)}
-          className="mt-5 inline-flex items-center gap-2 h-8 px-4 rounded-lg border border-[#60A5FA]/40 bg-[#60A5FA]/15 hover:bg-[#60A5FA]/25 text-[12px] font-medium text-[#F1F5F9] transition-colors"
+          className="mt-5 inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#3B82F6] hover:from-[#1D4ED8] hover:to-[#2563EB] text-[12px] font-semibold text-white shadow-sm shadow-[#2563EB]/25 transition-all"
         >
-          <RefreshCw className="w-3.5 h-3.5 text-[#60A5FA]" />
+          <RefreshCw className="w-3.5 h-3.5" />
           <span>Retry AST Analysis</span>
         </button>
       </div>
@@ -1001,29 +1001,29 @@ function ArchitectureCanvasWorkspace({
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-        className={`space-y-3 ${isFullscreen ? 'bg-[#080B12] p-4 overflow-y-auto h-screen' : ''}`}
+        className={`space-y-3 ${isFullscreen ? 'bg-[#F8FAFC] p-4 overflow-y-auto h-screen' : ''}`}
       >
         {/* TOP HEADER & WORKSPACE TOOLBAR */}
-        <header className="rounded-lg border border-[#202A3A] bg-[#0D111B]">
+        <header className="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-10px_rgba(37,99,235,0.06)]">
           {/* Row 1: Brand Title, Breadcrumbs & Level / Mode Switchers */}
-          <div className="px-4 py-3 border-b border-[#202A3A] flex flex-wrap items-center justify-between gap-3">
+          <div className="px-4 py-3 border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-lg border border-[#202A3A] bg-[#101623] flex items-center justify-center shrink-0">
-                <GitFork className="w-4 h-4 text-[#60A5FA]" />
+              <div className="w-9 h-9 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] flex items-center justify-center shrink-0">
+                <GitFork className="w-4 h-4 text-[#2563EB]" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#64748B] truncate">
-                  <span className="text-[#94A3B8] truncate">{repositoryName}</span>
+                  <span className="text-[#475569] font-medium truncate">{repositoryName}</span>
                   <span>/</span>
                   <span>{LEVEL_LABELS.find((l) => l.id === level)?.short || level}</span>
                   {codeScopeLabel && (
                     <>
                       <span>/</span>
-                      <span className="text-[#60A5FA] truncate">{codeScopeLabel}</span>
+                      <span className="text-[#2563EB] font-medium truncate">{codeScopeLabel}</span>
                     </>
                   )}
                 </div>
-                <h2 className="font-display text-[20px] sm:text-[24px] leading-tight font-semibold tracking-tight text-[#F1F5F9]">
+                <h2 className="font-display text-[20px] sm:text-[22px] leading-tight font-bold tracking-tight text-[#0B1F3A]">
                   Architecture Intelligence
                 </h2>
               </div>
@@ -1031,7 +1031,7 @@ function ArchitectureCanvasWorkspace({
 
             <div className="flex flex-wrap items-center gap-2">
               {/* Multi-Level Switcher with Motion layoutId */}
-              <div className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-[#080B12] border border-[#202A3A]">
+              <div className="inline-flex items-center gap-0.5 p-1 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                 {LEVEL_LABELS.map((lvl) => {
                   const isActive = level === lvl.id && viewMode === 'graph';
                   return (
@@ -1051,15 +1051,15 @@ function ArchitectureCanvasWorkspace({
                         if (firstNode) setSelectedNodeId(firstNode.id);
                         setTimeout(() => fitView({ padding: 0.2, duration: 280 }), 70);
                       }}
-                      className={`relative px-2.5 h-7 text-[12px] font-medium rounded-md transition-colors whitespace-nowrap ${
-                        isActive ? 'text-[#F1F5F9]' : 'text-[#94A3B8] hover:text-[#F1F5F9]'
+                      className={`relative px-2.5 h-7 text-[12px] font-medium rounded-lg transition-colors whitespace-nowrap ${
+                        isActive ? 'text-[#1D4ED8] font-semibold' : 'text-[#64748B] hover:text-[#0F172A]'
                       }`}
                     >
                       {isActive && (
                         <motion.span
                           layoutId="arch-level-pill"
                           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                          className="absolute inset-0 rounded-md bg-[#151D2B] border border-[#60A5FA]/40"
+                          className="absolute inset-0 rounded-lg bg-white border border-[#BFDBFE] shadow-2xs"
                         />
                       )}
                       <span className="relative z-10">{lvl.label}</span>
@@ -1069,7 +1069,7 @@ function ArchitectureCanvasWorkspace({
               </div>
 
               {/* View Mode Switcher */}
-              <div className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-[#080B12] border border-[#202A3A]">
+              <div className="inline-flex items-center gap-0.5 p-1 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                 {(
                   [
                     { id: 'graph', label: 'Graph', icon: Layers },
@@ -1092,20 +1092,20 @@ function ArchitectureCanvasWorkspace({
                         setViewMode(mode.id);
                         if (mode.id === 'flow') setLevel('file');
                       }}
-                      className={`relative inline-flex items-center gap-1.5 px-2.5 h-7 text-[12px] font-medium rounded-md transition-colors whitespace-nowrap ${
-                        active ? 'text-[#F1F5F9]' : 'text-[#94A3B8] hover:text-[#F1F5F9]'
+                      className={`relative inline-flex items-center gap-1.5 px-2.5 h-7 text-[12px] font-medium rounded-lg transition-colors whitespace-nowrap ${
+                        active ? 'text-[#1D4ED8] font-semibold' : 'text-[#64748B] hover:text-[#0F172A]'
                       }`}
                     >
                       {active && (
                         <motion.span
                           layoutId="arch-view-pill"
                           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                          className="absolute inset-0 rounded-md bg-[#151D2B] border border-[#A78BFA]/40"
+                          className="absolute inset-0 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] shadow-2xs"
                         />
                       )}
                       <Icon
                         className={`w-3.5 h-3.5 relative z-10 ${
-                          active ? 'text-[#A78BFA]' : 'text-[#64748B]'
+                          active ? 'text-[#2563EB]' : 'text-[#64748B]'
                         }`}
                       />
                       <span className="relative z-10">{mode.label}</span>
@@ -1117,7 +1117,7 @@ function ArchitectureCanvasWorkspace({
           </div>
 
           {/* Row 2: Action & Search Toolbar (compact h-8 controls) */}
-          <div className="px-4 py-2 flex flex-wrap items-center justify-between gap-2 bg-[#101623]/60">
+          <div className="px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 bg-[#F8FAFC]/80 rounded-b-2xl">
             <div className="flex flex-wrap items-center gap-2">
               {/* Global Search */}
               <GlobalSearch
@@ -1140,10 +1140,10 @@ function ArchitectureCanvasWorkspace({
                     setExportOpen(false);
                     setOverviewOpen(false);
                   }}
-                  className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border text-[12px] transition-colors whitespace-nowrap ${
+                  className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-xl border text-[12px] font-medium transition-colors whitespace-nowrap ${
                     activeFiltersCount > 0 || filtersOpen
-                      ? 'border-[#60A5FA]/45 bg-[#151D2B] text-[#60A5FA]'
-                      : 'border-[#202A3A] bg-[#080B12] text-[#94A3B8] hover:text-[#F1F5F9]'
+                      ? 'border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]'
+                      : 'border-[#E2E8F0] bg-white text-[#475569] hover:text-[#0F172A] hover:border-[#93C5FD]'
                   }`}
                 >
                   <Filter className="w-3.5 h-3.5" />
@@ -1159,14 +1159,14 @@ function ArchitectureCanvasWorkspace({
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 4, scale: 0.98 }}
                       transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute left-0 sm:left-auto sm:right-0 mt-1.5 w-80 rounded-lg border border-[#202A3A] bg-[#101623] shadow-2xl z-40 p-4 space-y-3 text-[12px]"
+                      className="absolute left-0 sm:left-auto sm:right-0 mt-1.5 w-80 rounded-2xl border border-[#E2E8F0] bg-white shadow-2xl shadow-[#0B1F3A]/12 z-40 p-4 space-y-3 text-[12px]"
                     >
-                      <div className="flex items-center justify-between border-b border-[#202A3A] pb-2">
-                        <span className="font-semibold text-[#F1F5F9]">Graph Filters</span>
+                      <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                        <span className="font-semibold text-[#0F172A]">Graph Filters</span>
                         <button
                           type="button"
                           onClick={resetFiltersAndLayout}
-                          className="text-[11px] font-mono text-[#60A5FA] hover:underline"
+                          className="text-[11px] font-mono font-medium text-[#2563EB] hover:underline"
                         >
                           Clear All
                         </button>
@@ -1174,13 +1174,13 @@ function ArchitectureCanvasWorkspace({
 
                       <div className="grid grid-cols-2 gap-2.5">
                         <div>
-                          <label className="block text-[11px] text-[#64748B] mb-1">
+                          <label className="block text-[11px] font-medium text-[#64748B] mb-1">
                             Node Type
                           </label>
                           <select
                             value={kindFilter}
                             onChange={(e) => setKindFilter(e.target.value as 'all' | GraphNodeKind)}
-                            className="w-full h-8 rounded-md border border-[#202A3A] bg-[#080B12] px-2 text-[12px] text-[#F1F5F9] focus:outline-none focus:border-[#60A5FA]/50"
+                            className="w-full h-8 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2 text-[12px] text-[#0F172A] focus:outline-none focus:border-[#2563EB]"
                           >
                             <option value="all">All Types</option>
                             {filterOptions.kinds.map((k) => (
@@ -1192,7 +1192,7 @@ function ArchitectureCanvasWorkspace({
                         </div>
 
                         <div>
-                          <label className="block text-[11px] text-[#64748B] mb-1">
+                          <label className="block text-[11px] font-medium text-[#64748B] mb-1">
                             Relationship
                           </label>
                           <select
@@ -1200,7 +1200,7 @@ function ArchitectureCanvasWorkspace({
                             onChange={(e) =>
                               setEdgeRelationFilter(e.target.value as 'all' | GraphEdgeRelation)
                             }
-                            className="w-full h-8 rounded-md border border-[#202A3A] bg-[#080B12] px-2 text-[12px] text-[#F1F5F9] focus:outline-none focus:border-[#60A5FA]/50"
+                            className="w-full h-8 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2 text-[12px] text-[#0F172A] focus:outline-none focus:border-[#2563EB]"
                           >
                             <option value="all">All Relations</option>
                             {filterOptions.relations.map((r) => (
@@ -1212,13 +1212,13 @@ function ArchitectureCanvasWorkspace({
                         </div>
 
                         <div>
-                          <label className="block text-[11px] text-[#64748B] mb-1">
+                          <label className="block text-[11px] font-medium text-[#64748B] mb-1">
                             Language
                           </label>
                           <select
                             value={languageFilter}
                             onChange={(e) => setLanguageFilter(e.target.value)}
-                            className="w-full h-8 rounded-md border border-[#202A3A] bg-[#080B12] px-2 text-[12px] text-[#F1F5F9] focus:outline-none focus:border-[#60A5FA]/50"
+                            className="w-full h-8 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2 text-[12px] text-[#0F172A] focus:outline-none focus:border-[#2563EB]"
                           >
                             <option value="all">All Languages</option>
                             {filterOptions.languages.map((l) => (
@@ -1230,11 +1230,13 @@ function ArchitectureCanvasWorkspace({
                         </div>
 
                         <div>
-                          <label className="block text-[11px] text-[#64748B] mb-1">Module</label>
+                          <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+                            Module
+                          </label>
                           <select
                             value={moduleFilter}
                             onChange={(e) => setModuleFilter(e.target.value)}
-                            className="w-full h-8 rounded-md border border-[#202A3A] bg-[#080B12] px-2 text-[12px] text-[#F1F5F9] focus:outline-none focus:border-[#60A5FA]/50"
+                            className="w-full h-8 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2 text-[12px] text-[#0F172A] focus:outline-none focus:border-[#2563EB]"
                           >
                             <option value="all">All Modules</option>
                             {filterOptions.modules.map((m) => (
@@ -1246,11 +1248,13 @@ function ArchitectureCanvasWorkspace({
                         </div>
 
                         <div>
-                          <label className="block text-[11px] text-[#64748B] mb-1">Folder</label>
+                          <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+                            Folder
+                          </label>
                           <select
                             value={folderFilter}
                             onChange={(e) => setFolderFilter(e.target.value)}
-                            className="w-full h-8 rounded-md border border-[#202A3A] bg-[#080B12] px-2 text-[12px] text-[#F1F5F9] focus:outline-none focus:border-[#60A5FA]/50"
+                            className="w-full h-8 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2 text-[12px] text-[#0F172A] focus:outline-none focus:border-[#2563EB]"
                           >
                             <option value="all">All Folders</option>
                             {filterOptions.folders.map((f) => (
@@ -1262,7 +1266,7 @@ function ArchitectureCanvasWorkspace({
                         </div>
 
                         <div>
-                          <label className="block text-[11px] text-[#64748B] mb-1">
+                          <label className="block text-[11px] font-medium text-[#64748B] mb-1">
                             Architecture Side
                           </label>
                           <select
@@ -1270,7 +1274,7 @@ function ArchitectureCanvasWorkspace({
                             onChange={(e) =>
                               setScopeSideFilter(e.target.value as 'all' | 'frontend' | 'backend')
                             }
-                            className="w-full h-8 rounded-md border border-[#202A3A] bg-[#080B12] px-2 text-[12px] text-[#F1F5F9] focus:outline-none focus:border-[#60A5FA]/50"
+                            className="w-full h-8 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2 text-[12px] text-[#0F172A] focus:outline-none focus:border-[#2563EB]"
                           >
                             <option value="all">Frontend &amp; Backend</option>
                             <option value="frontend">Frontend Only</option>
@@ -1280,19 +1284,19 @@ function ArchitectureCanvasWorkspace({
                       </div>
 
                       <div>
-                        <label className="block text-[11px] text-[#64748B] mb-1">
+                        <label className="block text-[11px] font-medium text-[#64748B] mb-1">
                           Internal vs External
                         </label>
-                        <div className="grid grid-cols-3 gap-0.5 p-0.5 rounded-lg bg-[#080B12] border border-[#202A3A]">
+                        <div className="grid grid-cols-3 gap-0.5 p-0.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                           {(['all', 'internal', 'external'] as const).map((opt) => (
                             <button
                               key={opt}
                               type="button"
                               onClick={() => setDepOriginFilter(opt)}
-                              className={`h-7 rounded text-[11px] capitalize transition-colors ${
+                              className={`h-7 rounded-lg text-[11px] font-medium capitalize transition-colors ${
                                 depOriginFilter === opt
-                                  ? 'bg-[#151D2B] text-[#F1F5F9] border border-[#60A5FA]/35'
-                                  : 'text-[#94A3B8] hover:text-[#F1F5F9]'
+                                  ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-2xs font-semibold'
+                                  : 'text-[#64748B] hover:text-[#0F172A]'
                               }`}
                             >
                               {opt}
@@ -1314,7 +1318,7 @@ function ArchitectureCanvasWorkspace({
                   setManualOffsets(new Map());
                   setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 80);
                 }}
-                className="h-8 rounded-lg border border-[#202A3A] bg-[#080B12] px-2.5 text-[12px] text-[#F1F5F9] focus:outline-none focus:border-[#60A5FA]/50"
+                className="h-8 rounded-xl border border-[#E2E8F0] bg-white hover:border-[#93C5FD] px-2.5 text-[12px] font-medium text-[#0F172A] focus:outline-none focus:border-[#2563EB] transition-colors"
               >
                 {LAYOUT_OPTIONS.map((opt) => (
                   <option key={opt.id} value={opt.id}>
@@ -1328,10 +1332,10 @@ function ArchitectureCanvasWorkspace({
                 type="button"
                 onClick={() => setHideUnrelated((v) => !v)}
                 title="Hide nodes not directly connected to selection"
-                className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border text-[12px] transition-colors whitespace-nowrap ${
+                className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-xl border text-[12px] font-medium transition-colors whitespace-nowrap ${
                   hideUnrelated
-                    ? 'border-[#60A5FA]/45 bg-[#151D2B] text-[#60A5FA]'
-                    : 'border-[#202A3A] bg-[#080B12] text-[#94A3B8] hover:text-[#F1F5F9]'
+                    ? 'border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]'
+                    : 'border-[#E2E8F0] bg-white text-[#475569] hover:text-[#0F172A] hover:border-[#93C5FD]'
                 }`}
               >
                 <EyeOff className="w-3.5 h-3.5" />
@@ -1345,9 +1349,9 @@ function ArchitectureCanvasWorkspace({
                 type="button"
                 onClick={() => void loadIntelligence(true)}
                 title="Re-run deterministic AST analysis"
-                className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-[#202A3A] bg-[#080B12] text-[#94A3B8] hover:text-[#F1F5F9] hover:border-[#334155] transition-colors"
+                className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-[#E2E8F0] bg-white text-[#64748B] hover:text-[#2563EB] hover:border-[#93C5FD] transition-colors"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#60A5FA]' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#2563EB]' : ''}`} />
               </button>
 
               {/* Inspector Toggle */}
@@ -1362,14 +1366,14 @@ function ArchitectureCanvasWorkspace({
                     }
                   }}
                   title="Toggle Node Inspector panel"
-                  className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border text-[12px] transition-colors whitespace-nowrap ${
+                  className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-xl border text-[12px] font-medium transition-colors whitespace-nowrap ${
                     inspectorOpen
-                      ? 'border-[#60A5FA]/35 bg-[#151D2B] text-[#F1F5F9]'
-                      : 'border-[#202A3A] bg-[#080B12] text-[#94A3B8] hover:text-[#F1F5F9]'
+                      ? 'border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]'
+                      : 'border-[#E2E8F0] bg-white text-[#475569] hover:text-[#0F172A] hover:border-[#93C5FD]'
                   }`}
                 >
                   {inspectorOpen ? (
-                    <PanelRightClose className="w-3.5 h-3.5 text-[#60A5FA]" />
+                    <PanelRightClose className="w-3.5 h-3.5 text-[#2563EB]" />
                   ) : (
                     <PanelRightOpen className="w-3.5 h-3.5" />
                   )}
@@ -1388,9 +1392,9 @@ function ArchitectureCanvasWorkspace({
                     setOverviewOpen(false);
                   }}
                   title="Export diagram or dependency report"
-                  className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-[#202A3A] bg-[#080B12] text-[12px] text-[#F1F5F9] hover:border-[#334155] disabled:opacity-60 transition-colors whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-xl border border-[#E2E8F0] bg-white text-[12px] font-medium text-[#0F172A] hover:border-[#93C5FD] hover:bg-[#EFF6FF]/40 disabled:opacity-60 transition-colors whitespace-nowrap"
                 >
-                  <Download className="w-3.5 h-3.5 text-[#94A3B8]" />
+                  <Download className="w-3.5 h-3.5 text-[#2563EB]" />
                   <span>
                     {exportingFormat ? `Exporting ${exportingFormat.toUpperCase()}...` : 'Export'}
                   </span>
@@ -1403,12 +1407,12 @@ function ArchitectureCanvasWorkspace({
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 4, scale: 0.98 }}
                       transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute right-0 mt-1.5 w-56 rounded-lg border border-[#202A3A] bg-[#101623] shadow-2xl z-40 p-1.5 text-[12px] space-y-0.5"
+                      className="absolute right-0 mt-1.5 w-56 rounded-2xl border border-[#E2E8F0] bg-white shadow-2xl shadow-[#0B1F3A]/12 z-40 p-1.5 text-[12px] space-y-0.5"
                     >
                       <button
                         type="button"
                         onClick={() => void handleExportVisualization('png')}
-                        className="w-full text-left px-3 py-2 rounded-md text-[#F1F5F9] hover:bg-[#151D2B] flex items-center justify-between transition-colors"
+                        className="w-full text-left px-3 py-2 rounded-xl text-[#0F172A] hover:bg-[#EFF6FF] hover:text-[#1D4ED8] flex items-center justify-between transition-colors font-medium"
                       >
                         <span>Export PNG Image</span>
                         <span className="font-mono text-[10px] text-[#64748B]">2x</span>
@@ -1416,7 +1420,7 @@ function ArchitectureCanvasWorkspace({
                       <button
                         type="button"
                         onClick={() => void handleExportVisualization('svg')}
-                        className="w-full text-left px-3 py-2 rounded-md text-[#F1F5F9] hover:bg-[#151D2B] flex items-center justify-between transition-colors"
+                        className="w-full text-left px-3 py-2 rounded-xl text-[#0F172A] hover:bg-[#EFF6FF] hover:text-[#1D4ED8] flex items-center justify-between transition-colors font-medium"
                       >
                         <span>Export SVG Vector</span>
                         <span className="font-mono text-[10px] text-[#64748B]">vector</span>
@@ -1424,22 +1428,22 @@ function ArchitectureCanvasWorkspace({
                       <button
                         type="button"
                         onClick={handleExportJson}
-                        className="w-full text-left px-3 py-2 rounded-md text-[#F1F5F9] hover:bg-[#151D2B] transition-colors"
+                        className="w-full text-left px-3 py-2 rounded-xl text-[#0F172A] hover:bg-[#EFF6FF] hover:text-[#1D4ED8] transition-colors font-medium"
                       >
                         Export Graph JSON
                       </button>
                       <button
                         type="button"
                         onClick={handleExportDependencyReport}
-                        className="w-full text-left px-3 py-2 rounded-md text-[#F1F5F9] hover:bg-[#151D2B] transition-colors"
+                        className="w-full text-left px-3 py-2 rounded-xl text-[#0F172A] hover:bg-[#EFF6FF] hover:text-[#1D4ED8] transition-colors font-medium"
                       >
                         Dependency Report (.md)
                       </button>
-                      <div className="border-t border-[#202A3A] my-1" />
+                      <div className="border-t border-[#E2E8F0] my-1" />
                       <button
                         type="button"
                         onClick={() => void handleCopyShareLink()}
-                        className="w-full text-left px-3 py-2 rounded-md text-[#60A5FA] hover:bg-[#151D2B] flex items-center gap-1.5 transition-colors"
+                        className="w-full text-left px-3 py-2 rounded-xl text-[#2563EB] hover:bg-[#EFF6FF] flex items-center gap-1.5 transition-colors font-semibold"
                       >
                         <Share2 className="w-3.5 h-3.5" />
                         <span>Copy Shareable View URL</span>
@@ -1454,7 +1458,7 @@ function ArchitectureCanvasWorkspace({
                 type="button"
                 onClick={() => void handleToggleFullscreen()}
                 title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen workspace'}
-                className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-[#202A3A] bg-[#080B12] text-[#94A3B8] hover:text-[#F1F5F9] hover:border-[#334155] transition-colors"
+                className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-[#E2E8F0] bg-white text-[#64748B] hover:text-[#2563EB] hover:border-[#93C5FD] transition-colors"
               >
                 {isFullscreen ? (
                   <Minimize2 className="w-3.5 h-3.5" />
@@ -1468,13 +1472,15 @@ function ArchitectureCanvasWorkspace({
 
         {/* Scope Banner for Level 4 Drill-Down or Truncation */}
         {(codeScopeLabel || (level === 'code' && currentLevelData.truncated)) && (
-          <div className="rounded-lg border border-[#60A5FA]/30 bg-[#101623] px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-[12px]">
-            <span className="text-[#94A3B8]">
+          <div className="rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-[12px]">
+            <span className="text-[#334155]">
               {codeScopeLabel ? (
                 <>
                   Scoped L4 Code Architecture to{' '}
-                  <span className="font-mono text-[#F1F5F9]">{codeScopeLabel}</span> (
-                  <span className="font-mono text-[#60A5FA]">{visibleGraphNodes.length}</span>{' '}
+                  <span className="font-mono font-semibold text-[#0B1F3A]">{codeScopeLabel}</span> (
+                  <span className="font-mono font-semibold text-[#2563EB]">
+                    {visibleGraphNodes.length}
+                  </span>{' '}
                   symbols).
                 </>
               ) : (
@@ -1488,7 +1494,7 @@ function ArchitectureCanvasWorkspace({
                   setScopedCodeGraph(null);
                   setCodeScopeLabel(null);
                 }}
-                className="text-[12px] font-mono text-[#60A5FA] hover:underline"
+                className="text-[12px] font-mono font-semibold text-[#2563EB] hover:underline"
               >
                 Show Repo Top Symbols
               </button>
@@ -1557,19 +1563,19 @@ function ArchitectureCanvasWorkspace({
                 ref={flowWrapperRef}
                 className={`${
                   inspectorOpen ? 'lg:col-span-8' : 'lg:col-span-12'
-                } rounded-lg border border-[#202A3A] bg-[#080B12] overflow-hidden relative transition-all duration-200 ${
+                } rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_28px_-12px_rgba(37,99,235,0.07)] overflow-hidden relative transition-all duration-200 ${
                   isFullscreen ? 'h-[74vh]' : 'h-[640px]'
                 }`}
               >
                 {visibleGraphNodes.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-                    <div className="w-11 h-11 rounded-lg border border-[#202A3A] bg-[#101623] flex items-center justify-center mb-3">
-                      <Layers className="w-5 h-5 text-[#64748B]" />
+                    <div className="w-11 h-11 rounded-xl border border-[#E2E8F0] bg-white shadow-2xs flex items-center justify-center mb-3">
+                      <Layers className="w-5 h-5 text-[#2563EB]" />
                     </div>
-                    <p className="text-[14px] font-semibold text-[#F1F5F9]">
+                    <p className="text-[14px] font-semibold text-[#0F172A]">
                       No architecture nodes match the current view
                     </p>
-                    <p className="mt-1 text-[12px] text-[#94A3B8] max-w-sm">
+                    <p className="mt-1 text-[12px] text-[#64748B] max-w-sm">
                       {activeFiltersCount > 0
                         ? 'Try clearing active node, language, or isolation filters to reveal the full topology.'
                         : 'No static symbols or modules were extracted at this level.'}
@@ -1579,9 +1585,9 @@ function ArchitectureCanvasWorkspace({
                       onClick={
                         activeFiltersCount > 0 ? resetFiltersAndLayout : () => void loadIntelligence(true)
                       }
-                      className="mt-4 inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg border border-[#60A5FA]/40 bg-[#60A5FA]/15 hover:bg-[#60A5FA]/25 text-[12px] font-medium text-[#F1F5F9] transition-colors"
+                      className="mt-4 inline-flex items-center gap-1.5 h-8 px-3.5 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[12px] font-semibold text-[#1D4ED8] transition-colors"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-[#60A5FA]" />
+                      <RotateCcw className="w-3.5 h-3.5 text-[#2563EB]" />
                       <span>{activeFiltersCount > 0 ? 'Reset Filters' : 'Re-run AST Analysis'}</span>
                     </button>
                   </div>
@@ -1658,8 +1664,8 @@ function ArchitectureCanvasWorkspace({
                       {showGrid && (
                         <Background
                           variant={BackgroundVariant.Dots}
-                          color="#202A3A"
-                          gap={24}
+                          color="#CBD5E1"
+                          gap={22}
                           size={1.2}
                         />
                       )}
@@ -1667,9 +1673,9 @@ function ArchitectureCanvasWorkspace({
                         <MiniMap
                           nodeColor={(n) => {
                             const kind = (n.data as ArchNodeRenderData)?.kind;
-                            return (kind && NODE_KIND_META[kind]?.hexColor) || '#60A5FA';
+                            return (kind && NODE_KIND_META[kind]?.hexColor) || '#2563EB';
                           }}
-                          maskColor="rgba(8, 11, 18, 0.78)"
+                          maskColor="rgba(241, 245, 249, 0.78)"
                         />
                       )}
                     </ReactFlow>
@@ -1682,9 +1688,9 @@ function ArchitectureCanvasWorkspace({
                       <button
                         type="button"
                         onClick={() => setMobileInspectorOpen(true)}
-                        className="lg:hidden absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#202A3A] bg-[#101623] text-[12px] text-[#F1F5F9] shadow-lg"
+                        className="lg:hidden absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 h-8 px-3 rounded-xl border border-[#E2E8F0] bg-white/95 backdrop-blur-md text-[12px] font-medium text-[#0F172A] shadow-lg shadow-[#0B1F3A]/10"
                       >
-                        <Info className="w-3.5 h-3.5 text-[#60A5FA]" />
+                        <Info className="w-3.5 h-3.5 text-[#2563EB]" />
                         <span className="max-w-[140px] truncate">{selectedNode.name}</span>
                       </button>
                     )}
@@ -1697,10 +1703,10 @@ function ArchitectureCanvasWorkspace({
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.98 }}
                           transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                          className="absolute bottom-14 left-3 z-30 w-72 rounded-lg border border-[#202A3A] bg-[#101623] p-3.5 shadow-2xl space-y-3 text-[11px]"
+                          className="absolute bottom-14 left-3 z-30 w-72 rounded-2xl border border-[#E2E8F0] bg-white/95 backdrop-blur-md p-3.5 shadow-2xl shadow-[#0B1F3A]/12 space-y-3 text-[11px]"
                         >
-                          <div className="flex items-center justify-between border-b border-[#202A3A] pb-2">
-                            <span className="font-semibold text-[#F1F5F9]">Graph Overview</span>
+                          <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                            <span className="font-semibold text-[#0F172A]">Graph Overview</span>
                             <span className="font-mono text-[#64748B]">
                               {visibleGraphNodes.length}n · {visibleGraphEdges.length}e
                             </span>
@@ -1715,9 +1721,9 @@ function ArchitectureCanvasWorkspace({
                                 return (
                                   <div
                                     key={kind}
-                                    className="flex items-center justify-between px-2 py-1 rounded bg-[#0D111B] border border-[#202A3A]"
+                                    className="flex items-center justify-between px-2 py-1 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]"
                                   >
-                                    <span className="flex items-center gap-1.5 truncate text-[#CBD5E1]">
+                                    <span className="flex items-center gap-1.5 truncate text-[#0F172A] font-medium">
                                       <span
                                         className="w-2 h-2 rounded-full shrink-0"
                                         style={{ backgroundColor: meta.hexColor }}
@@ -1745,7 +1751,7 @@ function ArchitectureCanvasWorkspace({
                                       key={rel}
                                       className="flex items-center justify-between font-mono text-[10px]"
                                     >
-                                      <span className="flex items-center gap-2 text-[#94A3B8]">
+                                      <span className="flex items-center gap-2 text-[#475569]">
                                         <span
                                           className="w-3 h-0.5 inline-block"
                                           style={{ backgroundColor: rMeta.color }}
@@ -1764,12 +1770,12 @@ function ArchitectureCanvasWorkspace({
                     </AnimatePresence>
 
                     {/* Floating Bottom-Left Navigation Dock */}
-                    <div className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-0.5 p-1 rounded-lg border border-[#202A3A] bg-[#101623]/95 shadow-lg">
+                    <div className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-0.5 p-1 rounded-xl border border-[#E2E8F0] bg-white/95 backdrop-blur-md shadow-lg shadow-[#0B1F3A]/10">
                       <button
                         type="button"
                         onClick={() => zoomIn({ duration: 180 })}
                         title="Zoom in"
-                        className="w-7 h-7 rounded-md flex items-center justify-center text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#151D2B] transition-colors"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#2563EB] hover:bg-[#EFF6FF] transition-colors"
                       >
                         <ZoomIn className="w-3.5 h-3.5" />
                       </button>
@@ -1777,7 +1783,7 @@ function ArchitectureCanvasWorkspace({
                         type="button"
                         onClick={() => zoomOut({ duration: 180 })}
                         title="Zoom out"
-                        className="w-7 h-7 rounded-md flex items-center justify-center text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#151D2B] transition-colors"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#2563EB] hover:bg-[#EFF6FF] transition-colors"
                       >
                         <ZoomOut className="w-3.5 h-3.5" />
                       </button>
@@ -1785,7 +1791,7 @@ function ArchitectureCanvasWorkspace({
                         type="button"
                         onClick={() => fitView({ padding: 0.2, duration: 280 })}
                         title="Fit graph to view"
-                        className="w-7 h-7 rounded-md flex items-center justify-center text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#151D2B] transition-colors"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#2563EB] hover:bg-[#EFF6FF] transition-colors"
                       >
                         <Scan className="w-3.5 h-3.5" />
                       </button>
@@ -1793,21 +1799,21 @@ function ArchitectureCanvasWorkspace({
                         type="button"
                         onClick={resetFiltersAndLayout}
                         title="Reset layout and filters"
-                        className="w-7 h-7 rounded-md flex items-center justify-center text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#151D2B] transition-colors"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#2563EB] hover:bg-[#EFF6FF] transition-colors"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
                       </button>
 
-                      <div className="w-px h-4 bg-[#202A3A] mx-0.5" />
+                      <div className="w-px h-4 bg-[#E2E8F0] mx-0.5" />
 
                       <button
                         type="button"
                         onClick={() => setShowGrid((v) => !v)}
                         title={showGrid ? 'Hide dot grid' : 'Show dot grid'}
-                        className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
                           showGrid
-                            ? 'text-[#60A5FA] bg-[#151D2B]'
-                            : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#151D2B]'
+                            ? 'text-[#2563EB] bg-[#EFF6FF]'
+                            : 'text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]'
                         }`}
                       >
                         <Grid3X3 className="w-3.5 h-3.5" />
@@ -1816,10 +1822,10 @@ function ArchitectureCanvasWorkspace({
                         type="button"
                         onClick={() => setShowMinimap((v) => !v)}
                         title={showMinimap ? 'Hide minimap' : 'Show minimap'}
-                        className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
                           showMinimap
-                            ? 'text-[#60A5FA] bg-[#151D2B]'
-                            : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#151D2B]'
+                            ? 'text-[#2563EB] bg-[#EFF6FF]'
+                            : 'text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]'
                         }`}
                       >
                         <MapIcon className="w-3.5 h-3.5" />
@@ -1828,10 +1834,10 @@ function ArchitectureCanvasWorkspace({
                         type="button"
                         onClick={() => setOverviewOpen((v) => !v)}
                         title="Graph legend & overview"
-                        className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
                           overviewOpen
-                            ? 'text-[#60A5FA] bg-[#151D2B]'
-                            : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#151D2B]'
+                            ? 'text-[#2563EB] bg-[#EFF6FF]'
+                            : 'text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]'
                         }`}
                       >
                         <Info className="w-3.5 h-3.5" />
@@ -1862,14 +1868,14 @@ function ArchitectureCanvasWorkspace({
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.18 }}
                       onClick={() => setMobileInspectorOpen(false)}
-                      className="fixed inset-0 bg-[#080B12]/80"
+                      className="fixed inset-0 bg-[#0B1F3A]/35 backdrop-blur-xs"
                     />
                     <motion.div
                       initial={{ x: '100%' }}
                       animate={{ x: 0 }}
                       exit={{ x: '100%' }}
                       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                      className="relative z-10 w-full max-w-md h-full p-3 bg-[#080B12]"
+                      className="relative z-10 w-full max-w-md h-full p-3 bg-[#F8FAFC] shadow-2xl"
                     >
                       <NodeInspectorSidebar
                         {...inspectorProps}
@@ -1884,8 +1890,8 @@ function ArchitectureCanvasWorkspace({
         )}
 
         {/* BOTTOM BREADCRUMB & TELEMETRY BAR */}
-        <div className="rounded-lg border border-[#202A3A] bg-[#0D111B] px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-[12px]">
-          <div className="flex flex-wrap items-center gap-1.5 text-[#94A3B8]">
+        <div className="rounded-2xl border border-[#E2E8F0] bg-white shadow-2xs px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-[12px]">
+          <div className="flex flex-wrap items-center gap-1.5 text-[#64748B]">
             {breadcrumbs.map((b, idx) => (
               <span key={`${b.level}-${idx}`} className="inline-flex items-center gap-1.5">
                 <button
@@ -1898,39 +1904,39 @@ function ArchitectureCanvasWorkspace({
                       setCodeScopeLabel(null);
                     }
                   }}
-                  className={`hover:text-[#F1F5F9] transition-colors ${
-                    level === b.level ? 'text-[#F1F5F9] font-medium' : ''
+                  className={`hover:text-[#2563EB] transition-colors ${
+                    level === b.level ? 'text-[#0F172A] font-semibold' : ''
                   }`}
                 >
                   {b.label}
                 </button>
                 {idx < breadcrumbs.length - 1 && (
-                  <ChevronRight className="w-3 h-3 text-[#64748B]" />
+                  <ChevronRight className="w-3 h-3 text-[#94A3B8]" />
                 )}
               </span>
             ))}
             {selectedNode && (
               <>
-                <ChevronRight className="w-3 h-3 text-[#64748B]" />
-                <span className="font-mono text-[#60A5FA] truncate max-w-[240px]">
+                <ChevronRight className="w-3 h-3 text-[#94A3B8]" />
+                <span className="font-mono font-semibold text-[#2563EB] truncate max-w-[240px]">
                   {selectedNode.name}
                 </span>
               </>
             )}
             {multiSelectedIds.length > 1 && (
-              <span className="ml-2 font-mono text-[#A78BFA]">
+              <span className="ml-2 font-mono font-medium text-[#4F46E5]">
                 ({multiSelectedIds.length} selected)
               </span>
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 font-mono text-[11px] text-[#94A3B8] tabular-nums">
+          <div className="flex flex-wrap items-center gap-2.5 font-mono text-[11px] text-[#64748B] tabular-nums">
             <span>{visibleGraphNodes.length} nodes</span>
-            <span className="text-[#202A3A]" aria-hidden="true">
+            <span className="text-[#CBD5E1]" aria-hidden="true">
               ·
             </span>
             <span>{computedFlow.flowEdges.length} edges</span>
-            <span className="text-[#202A3A]" aria-hidden="true">
+            <span className="text-[#CBD5E1]" aria-hidden="true">
               ·
             </span>
             <span>
@@ -1938,19 +1944,19 @@ function ArchitectureCanvasWorkspace({
                 intelligence.complexityMetrics.methodCount}{' '}
               fn
             </span>
-            <span className="text-[#202A3A]" aria-hidden="true">
+            <span className="text-[#CBD5E1]" aria-hidden="true">
               ·
             </span>
             <span>{intelligence.complexityMetrics.classCount} classes</span>
-            <span className="text-[#202A3A]" aria-hidden="true">
+            <span className="text-[#CBD5E1]" aria-hidden="true">
               ·
             </span>
             <span
-              className={
+              className={`font-medium ${
                 intelligence.complexityMetrics.circularDependencyCount > 0
-                  ? 'text-[#FB7185]'
-                  : 'text-[#34D399]'
-              }
+                  ? 'text-[#E11D48]'
+                  : 'text-[#059669]'
+              }`}
             >
               {intelligence.complexityMetrics.circularDependencyCount} cycles
             </span>

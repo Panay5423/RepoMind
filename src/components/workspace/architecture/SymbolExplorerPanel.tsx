@@ -76,11 +76,11 @@ export function SymbolExplorerPanel({
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-lg border border-[#202A3A] bg-[#101623] overflow-hidden"
+      className="rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-10px_rgba(37,99,235,0.06)] overflow-hidden"
     >
       {/* Controls Header */}
-      <div className="px-4 py-3 border-b border-[#202A3A] flex flex-wrap items-center justify-between gap-3 bg-[#0D111B]">
-        <div className="inline-flex flex-wrap items-center gap-0.5 p-0.5 rounded-lg bg-[#080B12] border border-[#202A3A]">
+      <div className="px-4 py-3 border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3 bg-[#F8FAFC]">
+        <div className="inline-flex flex-wrap items-center gap-0.5 p-1 rounded-xl bg-white border border-[#E2E8F0]">
           {tabs.map((t) => {
             const Icon = t.icon;
             const active = category === t.id;
@@ -89,13 +89,13 @@ export function SymbolExplorerPanel({
                 key={t.id}
                 type="button"
                 onClick={() => setCategory(t.id)}
-                className={`inline-flex items-center gap-1.5 px-2.5 h-7 text-[12px] font-medium rounded-md transition-colors whitespace-nowrap ${
+                className={`inline-flex items-center gap-1.5 px-2.5 h-7 text-[12px] font-medium rounded-lg transition-colors whitespace-nowrap ${
                   active
-                    ? 'bg-[#151D2B] text-[#F1F5F9] border border-[#60A5FA]/35'
-                    : 'text-[#94A3B8] hover:text-[#F1F5F9]'
+                    ? 'bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] font-semibold'
+                    : 'text-[#64748B] hover:text-[#0F172A]'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${active ? 'text-[#60A5FA]' : 'text-[#64748B]'}`} />
+                <Icon className={`w-3.5 h-3.5 ${active ? 'text-[#2563EB]' : 'text-[#64748B]'}`} />
                 <span>{t.label}</span>
                 <span className="font-mono text-[10px] text-[#64748B] tabular-nums">{t.count}</span>
               </button>
@@ -104,12 +104,12 @@ export function SymbolExplorerPanel({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex items-center gap-2 text-[12px] text-[#94A3B8] hover:text-[#F1F5F9] cursor-pointer select-none">
+          <label className="inline-flex items-center gap-2 text-[12px] font-medium text-[#475569] hover:text-[#0F172A] cursor-pointer select-none">
             <input
               type="checkbox"
               checked={exportedOnly}
               onChange={(e) => setExportedOnly(e.target.checked)}
-              className="rounded border-[#202A3A] bg-[#080B12] text-[#60A5FA] focus:ring-0"
+              className="rounded border-[#CBD5E1] bg-white text-[#2563EB] focus:ring-[#2563EB]/20"
             />
             <span>Exported only</span>
           </label>
@@ -120,14 +120,14 @@ export function SymbolExplorerPanel({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Filter symbol or file path..."
-              className="w-full h-8 rounded-lg border border-[#202A3A] bg-[#080B12] pl-8 pr-3 text-[12px] text-[#F1F5F9] placeholder-[#64748B] focus:outline-none focus:border-[#60A5FA]/50 transition-colors"
+              className="w-full h-8 rounded-xl border border-[#E2E8F0] bg-white pl-8 pr-3 text-[12px] text-[#0F172A] placeholder-[#64748B] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 transition-all"
             />
           </div>
         </div>
       </div>
 
       {/* Results List */}
-      <div className="p-4 max-h-[640px] overflow-y-auto space-y-2.5">
+      <div className="p-4 max-h-[640px] overflow-y-auto space-y-2.5 bg-white">
         {category === 'functions' &&
           (filteredFunctions.length === 0 ? (
             <p className="text-[12px] text-[#64748B] py-10 text-center">
@@ -137,31 +137,31 @@ export function SymbolExplorerPanel({
             filteredFunctions.slice(0, 80).map((fn) => (
               <div
                 key={fn.id}
-                className="rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#334155] p-3.5 space-y-2.5 transition-colors"
+                className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-white hover:border-[#93C5FD] hover:shadow-xs p-3.5 space-y-2.5 transition-all"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="font-mono text-[13px] font-semibold text-[#F1F5F9] break-all">
-                      {fn.isAsync ? <span className="text-[#A78BFA]">async </span> : null}
+                    <div className="font-mono text-[13px] font-semibold text-[#0F172A] break-all">
+                      {fn.isAsync ? <span className="text-[#4F46E5]">async </span> : null}
                       {fn.name}(
-                      <span className="text-[#94A3B8]">
+                      <span className="text-[#64748B] font-normal">
                         {fn.parameters
                           .map((p) => `${p.name}${p.type ? `: ${p.type}` : ''}`)
                           .join(', ')}
                       </span>
-                      ){fn.returnType ? <span className="text-[#22D3EE]">: {fn.returnType}</span> : ''}
+                      ){fn.returnType ? <span className="text-[#0284C7]">: {fn.returnType}</span> : ''}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#64748B] font-mono">
                       <span>{fn.kind}</span>
                       <span>·</span>
-                      <span className={fn.exported ? 'text-[#34D399]' : ''}>
+                      <span className={fn.exported ? 'text-[#059669] font-medium' : ''}>
                         {fn.exported ? 'exported' : 'internal'}
                       </span>
                       <span>·</span>
                       <button
                         type="button"
                         onClick={() => onOpenFile(fn.filePath, fn.line, fn.endLine)}
-                        className="text-[#60A5FA] hover:underline"
+                        className="text-[#2563EB] hover:underline"
                       >
                         {fn.filePath}:{fn.line}
                       </button>
@@ -171,15 +171,15 @@ export function SymbolExplorerPanel({
                     <button
                       type="button"
                       onClick={() => onLocateSymbolInGraph(fn.id, fn.filePath)}
-                      className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-[#202A3A] bg-[#101623] hover:bg-[#151D2B] text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] hover:border-[#60A5FA]/40 transition-colors"
+                      className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-[#E2E8F0] bg-white hover:bg-[#EFF6FF] text-[11px] font-medium text-[#475569] hover:text-[#2563EB] hover:border-[#93C5FD] transition-colors"
                     >
-                      <Crosshair className="w-3 h-3 text-[#60A5FA]" />
+                      <Crosshair className="w-3 h-3 text-[#2563EB]" />
                       <span>Locate</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => onOpenFile(fn.filePath, fn.line, fn.endLine)}
-                      className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-[#202A3A] bg-[#101623] hover:bg-[#151D2B] text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
+                      className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-[11px] font-medium text-[#475569] hover:text-[#0F172A] transition-colors"
                     >
                       <ExternalLink className="w-3 h-3" />
                       <span>Source</span>
@@ -187,10 +187,10 @@ export function SymbolExplorerPanel({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-[#202A3A] text-[11px]">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-[#E2E8F0] text-[11px]">
                   <div>
                     <div className="text-[#64748B] mb-1 font-mono">Calls ({fn.calls.length})</div>
-                    <div className="font-mono text-[#CBD5E1] break-words">
+                    <div className="font-mono text-[#334155] break-words">
                       {fn.calls.length > 0 ? fn.calls.slice(0, 8).join(', ') : 'None'}
                     </div>
                   </div>
@@ -198,7 +198,7 @@ export function SymbolExplorerPanel({
                     <div className="text-[#64748B] mb-1 font-mono">
                       Called By ({fn.calledBy.length})
                     </div>
-                    <div className="font-mono text-[#CBD5E1] break-words">
+                    <div className="font-mono text-[#334155] break-words">
                       {fn.calledBy.length > 0 ? fn.calledBy.slice(0, 8).join(', ') : 'No static callers'}
                     </div>
                   </div>
@@ -206,7 +206,7 @@ export function SymbolExplorerPanel({
                     <div className="text-[#64748B] mb-1 font-mono">
                       Variables &amp; Deps ({fn.variablesUsed.length})
                     </div>
-                    <div className="font-mono text-[#94A3B8] break-words">
+                    <div className="font-mono text-[#64748B] break-words">
                       {fn.variablesUsed.length > 0
                         ? fn.variablesUsed.slice(0, 10).join(', ')
                         : 'None'}
@@ -226,11 +226,11 @@ export function SymbolExplorerPanel({
             filteredClasses.slice(0, 80).map((cls) => (
               <div
                 key={cls.id}
-                className="rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#334155] p-3.5 space-y-2.5 transition-colors"
+                className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-white hover:border-[#93C5FD] hover:shadow-xs p-3.5 space-y-2.5 transition-all"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="font-mono text-[13px] font-semibold text-[#FBBF24]">
+                    <div className="font-mono text-[13px] font-semibold text-[#1D4ED8]">
                       class {cls.name}
                       {cls.extendsClass ? ` extends ${cls.extendsClass}` : ''}
                       {cls.implementsInterfaces.length > 0
@@ -242,14 +242,14 @@ export function SymbolExplorerPanel({
                       {cls.decorators.length > 0 && (
                         <>
                           <span>·</span>
-                          <span className="text-[#A78BFA]">@{cls.decorators.join(' @')}</span>
+                          <span className="text-[#4F46E5]">@{cls.decorators.join(' @')}</span>
                         </>
                       )}
                       <span>·</span>
                       <button
                         type="button"
                         onClick={() => onOpenFile(cls.filePath, cls.line, cls.endLine)}
-                        className="text-[#60A5FA] hover:underline"
+                        className="text-[#2563EB] hover:underline"
                       >
                         {cls.filePath}:{cls.line}
                       </button>
@@ -258,19 +258,19 @@ export function SymbolExplorerPanel({
                   <button
                     type="button"
                     onClick={() => onLocateSymbolInGraph(cls.id, cls.filePath)}
-                    className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-[#202A3A] bg-[#101623] hover:bg-[#151D2B] text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] hover:border-[#60A5FA]/40 transition-colors"
+                    className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-[#E2E8F0] bg-white hover:bg-[#EFF6FF] text-[11px] font-medium text-[#475569] hover:text-[#2563EB] hover:border-[#93C5FD] transition-colors"
                   >
-                    <Crosshair className="w-3 h-3 text-[#60A5FA]" />
+                    <Crosshair className="w-3 h-3 text-[#2563EB]" />
                     <span>Locate</span>
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-[#202A3A] text-[11px]">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-[#E2E8F0] text-[11px]">
                   <div>
                     <div className="text-[#64748B] mb-1 font-mono">
                       Properties ({cls.properties.length})
                     </div>
-                    <div className="font-mono text-[#CBD5E1]">
+                    <div className="font-mono text-[#334155]">
                       {cls.properties.length > 0
                         ? cls.properties
                             .map((p) => `${p.name}${p.type ? `: ${p.type}` : ''}`)
@@ -282,7 +282,7 @@ export function SymbolExplorerPanel({
                     <div className="text-[#64748B] mb-1 font-mono">
                       Constructor ({cls.constructorParams.length})
                     </div>
-                    <div className="font-mono text-[#CBD5E1]">
+                    <div className="font-mono text-[#334155]">
                       {cls.constructorParams.length > 0
                         ? cls.constructorParams
                             .map((p) => `${p.name}${p.type ? `: ${p.type}` : ''}`)
@@ -294,7 +294,7 @@ export function SymbolExplorerPanel({
                     <div className="text-[#64748B] mb-1 font-mono">
                       Methods ({cls.methods.length})
                     </div>
-                    <div className="font-mono text-[#CBD5E1]">
+                    <div className="font-mono text-[#334155]">
                       {cls.methods.length > 0 ? cls.methods.join(', ') : 'None'}
                     </div>
                   </div>
@@ -312,11 +312,11 @@ export function SymbolExplorerPanel({
             filteredObjects.slice(0, 80).map((obj) => (
               <div
                 key={obj.id}
-                className="rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#334155] p-3.5 space-y-2.5 transition-colors"
+                className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-white hover:border-[#93C5FD] hover:shadow-xs p-3.5 space-y-2.5 transition-all"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <div className="font-mono text-[13px] font-semibold text-[#22D3EE]">
+                    <div className="font-mono text-[13px] font-semibold text-[#0284C7]">
                       {obj.name}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#64748B] font-mono">
@@ -325,7 +325,7 @@ export function SymbolExplorerPanel({
                       <button
                         type="button"
                         onClick={() => onOpenFile(obj.createdAt.filePath, obj.createdAt.line)}
-                        className="text-[#60A5FA] hover:underline"
+                        className="text-[#2563EB] hover:underline"
                       >
                         Created at {obj.createdAt.filePath}:{obj.createdAt.line}
                       </button>
@@ -334,19 +334,19 @@ export function SymbolExplorerPanel({
                   <button
                     type="button"
                     onClick={() => onLocateSymbolInGraph(obj.id, obj.filePath)}
-                    className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-[#202A3A] bg-[#101623] hover:bg-[#151D2B] text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
+                    className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-[#E2E8F0] bg-white hover:bg-[#EFF6FF] text-[11px] font-medium text-[#475569] hover:text-[#2563EB] hover:border-[#93C5FD] transition-colors"
                   >
-                    <Crosshair className="w-3 h-3 text-[#60A5FA]" />
+                    <Crosshair className="w-3 h-3 text-[#2563EB]" />
                     <span>Locate</span>
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-[#202A3A] text-[11px]">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-[#E2E8F0] text-[11px]">
                   <div>
                     <div className="text-[#64748B] mb-1 font-mono">
                       Properties ({obj.properties.length})
                     </div>
-                    <div className="font-mono text-[#CBD5E1]">
+                    <div className="font-mono text-[#334155]">
                       {obj.properties.join(', ') || 'None'}
                     </div>
                   </div>
@@ -354,7 +354,7 @@ export function SymbolExplorerPanel({
                     <div className="text-[#64748B] mb-1 font-mono">
                       Methods ({obj.methods.length})
                     </div>
-                    <div className="font-mono text-[#CBD5E1]">
+                    <div className="font-mono text-[#334155]">
                       {obj.methods.join(', ') || 'None'}
                     </div>
                   </div>
@@ -362,13 +362,13 @@ export function SymbolExplorerPanel({
                     <div className="text-[#64748B] mb-1 font-mono">
                       References ({obj.references.length})
                     </div>
-                    <div className="font-mono text-[#94A3B8] space-y-0.5">
+                    <div className="font-mono text-[#64748B] space-y-0.5">
                       {obj.references.slice(0, 4).map((r, i) => (
                         <button
                           key={`${r.filePath}-${r.line}-${i}`}
                           type="button"
                           onClick={() => onOpenFile(r.filePath, r.line)}
-                          className="block text-left text-[#60A5FA] hover:underline truncate w-full"
+                          className="block text-left text-[#2563EB] hover:underline truncate w-full"
                         >
                           {r.filePath}:{r.line} ({r.context})
                         </button>
@@ -390,36 +390,36 @@ export function SymbolExplorerPanel({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-[12px]">
                 <thead>
-                  <tr className="border-b border-[#202A3A] text-[#64748B]">
-                    <th className="py-2 pr-3 font-medium">Name</th>
-                    <th className="py-2 px-3 font-medium">Kind</th>
-                    <th className="py-2 px-3 font-medium">Type</th>
-                    <th className="py-2 px-3 font-medium">Scope</th>
-                    <th className="py-2 px-3 font-medium">Declaration</th>
-                    <th className="py-2 pl-3 font-medium text-right">Refs</th>
+                  <tr className="border-b border-[#E2E8F0] text-[#64748B] bg-[#F8FAFC]">
+                    <th className="py-2.5 px-3 font-semibold">Name</th>
+                    <th className="py-2.5 px-3 font-semibold">Kind</th>
+                    <th className="py-2.5 px-3 font-semibold">Type</th>
+                    <th className="py-2.5 px-3 font-semibold">Scope</th>
+                    <th className="py-2.5 px-3 font-semibold">Declaration</th>
+                    <th className="py-2.5 px-3 font-semibold text-right">Refs</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#202A3A]/70 font-mono">
+                <tbody className="divide-y divide-[#F1F5F9] font-mono">
                   {filteredVariables.slice(0, 120).map((v) => (
-                    <tr key={v.id} className="hover:bg-[#151D2B]/60 transition-colors">
-                      <td className="py-2 pr-3 text-[#F1F5F9] font-semibold">{v.name}</td>
-                      <td className="py-2 px-3 text-[#94A3B8]">{v.kind}</td>
-                      <td className="py-2 px-3 text-[#22D3EE] max-w-[180px] truncate">
+                    <tr key={v.id} className="hover:bg-[#EFF6FF]/40 transition-colors">
+                      <td className="py-2.5 px-3 text-[#0F172A] font-semibold">{v.name}</td>
+                      <td className="py-2.5 px-3 text-[#64748B]">{v.kind}</td>
+                      <td className="py-2.5 px-3 text-[#0284C7] max-w-[180px] truncate">
                         {v.dataType || 'inferred'}
                       </td>
-                      <td className="py-2 px-3 text-[#94A3B8]">
+                      <td className="py-2.5 px-3 text-[#64748B]">
                         {v.scope} · {v.exported ? 'exported' : 'local'}
                       </td>
-                      <td className="py-2 px-3">
+                      <td className="py-2.5 px-3">
                         <button
                           type="button"
                           onClick={() => onOpenFile(v.filePath, v.line)}
-                          className="text-[#60A5FA] hover:underline"
+                          className="text-[#2563EB] hover:underline"
                         >
                           {v.filePath}:{v.line}
                         </button>
                       </td>
-                      <td className="py-2 pl-3 text-right text-[#F1F5F9] tabular-nums">
+                      <td className="py-2.5 px-3 text-right text-[#0B1F3A] font-semibold tabular-nums">
                         {v.references.length}
                       </td>
                     </tr>

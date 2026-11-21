@@ -54,7 +54,7 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
   return (
     <>
       {before}
-      <span className="text-[#FBBF24] bg-[#FBBF24]/15 rounded-sm px-0.5">{match}</span>
+      <span className="text-[#B45309] bg-[#FEF3C7] font-semibold rounded-sm px-0.5">{match}</span>
       {after}
     </>
   );
@@ -315,24 +315,24 @@ export function GlobalSearch({
           }}
           onKeyDown={handleKeyDown}
           placeholder="Search nodes or paths..."
-          className={`h-8 w-52 sm:w-64 rounded-lg border bg-[#080B12] pl-8 ${
+          className={`h-8 w-52 sm:w-64 rounded-xl border bg-white pl-8 ${
             hasQuery ? 'pr-24' : 'pr-10'
-          } text-xs text-[#F1F5F9] placeholder-[#64748B] focus:outline-none transition-colors duration-150 ${
+          } text-xs text-[#0F172A] placeholder-[#64748B] focus:outline-none transition-all duration-150 ${
             hasQuery
-              ? 'border-[#FBBF24]/55 focus:border-[#FBBF24]'
-              : 'border-[#202A3A] hover:border-[#2D3B52] focus:border-[#60A5FA]'
+              ? 'border-[#F59E0B] ring-2 ring-[#F59E0B]/15'
+              : 'border-[#E2E8F0] hover:border-[#93C5FD] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15'
           }`}
         />
 
         {!hasQuery ? (
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-[#64748B]">
+          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-[#64748B] bg-[#F8FAFC] border border-[#E2E8F0] px-1.5 py-0.2 rounded">
             ⌘K
           </span>
         ) : (
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
             <span
-              className={`text-[10px] font-mono tabular-nums ${
-                currentViewMatchIds.size > 0 ? 'text-[#FBBF24]' : 'text-[#64748B]'
+              className={`text-[10px] font-mono tabular-nums font-medium ${
+                currentViewMatchIds.size > 0 ? 'text-[#D97706]' : 'text-[#64748B]'
               }`}
               title="Matching nodes highlighted in current view"
             >
@@ -345,7 +345,7 @@ export function GlobalSearch({
                 setOpen(false);
               }}
               aria-label="Clear search"
-              className="text-[#64748B] hover:text-[#F1F5F9] transition-colors"
+              className="text-[#64748B] hover:text-[#0F172A] transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -360,10 +360,10 @@ export function GlobalSearch({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.985 }}
             transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute right-0 mt-1.5 w-[22rem] sm:w-[27rem] rounded-xl border border-[#202A3A] bg-[#101623] shadow-2xl z-50 overflow-hidden"
+            className="absolute left-0 sm:left-auto sm:right-0 mt-1.5 w-[22rem] sm:w-[27rem] rounded-2xl border border-[#E2E8F0] bg-white shadow-2xl shadow-[#0B1F3A]/12 z-50 overflow-hidden"
           >
             {/* Level Scope Filter Bar */}
-            <div className="px-3 py-2 border-b border-[#202A3A] bg-[#0D111B] flex items-center justify-between gap-2">
+            <div className="px-3 py-2 border-b border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between gap-2">
               <div className="flex items-center gap-1">
                 {(['all', 'system', 'module', 'file', 'code'] as const).map((lvl) => (
                   <button
@@ -371,10 +371,10 @@ export function GlobalSearch({
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => setLevelScope(lvl)}
-                    className={`px-2 py-0.5 rounded text-[10px] font-mono capitalize transition-colors ${
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-mono capitalize transition-colors ${
                       levelScope === lvl
-                        ? 'bg-[#60A5FA]/15 text-[#60A5FA] border border-[#60A5FA]/30'
-                        : 'text-[#64748B] hover:text-[#F1F5F9] hover:bg-[#151D2B] border border-transparent'
+                        ? 'bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] font-semibold'
+                        : 'text-[#64748B] hover:text-[#0F172A] hover:bg-white border border-transparent'
                     }`}
                   >
                     {lvl}
@@ -389,7 +389,9 @@ export function GlobalSearch({
             {rankedResults.length === 0 ? (
               <div className="px-4 py-7 text-center">
                 <FileCode2 className="w-5 h-5 text-[#64748B] mx-auto mb-2" />
-                <p className="text-xs text-[#F1F5F9]">No nodes match &ldquo;{query.trim()}&rdquo;</p>
+                <p className="text-xs font-medium text-[#0F172A]">
+                  No nodes match &ldquo;{query.trim()}&rdquo;
+                </p>
                 <p className="text-[11px] text-[#64748B] mt-0.5">
                   Try a file path, module name, function, or class.
                 </p>
@@ -410,19 +412,23 @@ export function GlobalSearch({
                         e.preventDefault();
                         handleSelect(res);
                       }}
-                      className={`w-full text-left px-2.5 py-2 rounded-lg transition-colors flex items-center justify-between gap-2.5 border ${
+                      className={`w-full text-left px-2.5 py-2 rounded-xl transition-colors flex items-center justify-between gap-2.5 border ${
                         isActive
-                          ? 'bg-[#151D2B] border-[#60A5FA]/35'
-                          : 'hover:bg-[#151D2B]/60 border-transparent'
+                          ? 'bg-[#EFF6FF] border-[#BFDBFE]'
+                          : 'hover:bg-[#F8FAFC] border-transparent'
                       }`}
                     >
                       <div className="flex items-start gap-2.5 min-w-0">
-                        <Icon className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${meta.accentText}`} />
+                        <span
+                          className={`w-5 h-5 rounded-md ${meta.iconBg} flex items-center justify-center mt-0.5 shrink-0`}
+                        >
+                          <Icon className={`w-3 h-3 ${meta.accentText}`} />
+                        </span>
                         <div className="min-w-0">
-                          <div className="text-xs font-medium text-[#F1F5F9] truncate">
+                          <div className="text-xs font-semibold text-[#0F172A] truncate">
                             <HighlightedText text={res.name} query={query} />
                           </div>
-                          <div className="text-[10.5px] font-mono text-[#94A3B8] truncate">
+                          <div className="text-[10.5px] font-mono text-[#64748B] truncate">
                             {res.filePath ? (
                               <>
                                 <HighlightedText text={res.filePath} query={query} />
@@ -437,14 +443,14 @@ export function GlobalSearch({
 
                       <div className="flex items-center gap-2 shrink-0 text-[10px] font-mono">
                         {res.inCurrentView && (
-                          <span className="text-[#FBBF24]" title="Visible in current view">
+                          <span className="text-[#D97706] font-medium" title="Visible in current view">
                             in view
                           </span>
                         )}
                         <span className="text-[#64748B]">
                           {res.level} · <span className={meta.accentText}>{meta.label}</span>
                         </span>
-                        {isActive && <CornerDownLeft className="w-3 h-3 text-[#60A5FA]" />}
+                        {isActive && <CornerDownLeft className="w-3 h-3 text-[#2563EB]" />}
                       </div>
                     </button>
                   );
@@ -452,7 +458,7 @@ export function GlobalSearch({
               </div>
             )}
 
-            <div className="px-3 py-1.5 border-t border-[#202A3A] bg-[#0D111B] flex items-center justify-between text-[10px] text-[#64748B] font-mono">
+            <div className="px-3 py-1.5 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between text-[10px] text-[#64748B] font-mono">
               <span>↑↓ navigate · Enter focus · Esc close</span>
               <span>Live canvas highlight</span>
             </div>
@@ -462,4 +468,3 @@ export function GlobalSearch({
     </div>
   );
 }
-

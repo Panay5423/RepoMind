@@ -18,10 +18,14 @@ export interface StoredUser {
   id: string;
   name: string;
   email: string;
-  passwordHash: string;
+  passwordHash?: string;
+  roleTitle?: string;
+  authProvider: 'local' | 'github' | 'hybrid';
+  githubId?: string;
   githubAccessToken?: string;
   githubUsername?: string;
   githubAvatarUrl?: string;
+  lastLoginAt?: string;
   createdAt: string;
 }
 
@@ -166,9 +170,20 @@ export const db = {
     return store.users.find((u) => u.id === id) || null;
   },
 
+  async findUserByGitHubId(githubId: string): Promise<StoredUser | null> {
+    if (!githubId) return null;
+    if (useMongo) {
+      const doc = await MongooseModels.User.findOne({ githubId: String(githubId) }).lean();
+      return doc ? mapDoc<StoredUser>(doc) : null;
+    }
+    const store = loadLocalStore();
+    return store.users.find((u) => u.githubId === String(githubId)) || null;
+  },
+
   async createUser(user: Omit<StoredUser, 'id' | 'createdAt'>): Promise<StoredUser> {
     const record: StoredUser = {
       ...user,
+      authProvider: user.authProvider || (user.githubId ? 'github' : 'local'),
       id: newId(),
       email: user.email.trim().toLowerCase(),
       createdAt: new Date().toISOString(),
@@ -184,14 +199,32 @@ export const db = {
   },
 
   async updateUser(id: string, patch: Partial<StoredUser>): Promise<StoredUser | null> {
+    const setFields: Record<string, unknown> = {};
+    const unsetFields: Record<string, 1> = {};
+    for (const [key, val] of Object.entries(patch)) {
+      if (val === undefined) {
+        unsetFields[key] = 1;
+      } else {
+        setFields[key] = val;
+      }
+    }
+
     if (useMongo) {
-      const doc = await MongooseModels.User.findByIdAndUpdate(id, { $set: patch }, { new: true }).lean();
+      const updateOps: Record<string, unknown> = {};
+      if (Object.keys(setFields).length > 0) updateOps.$set = setFields;
+      if (Object.keys(unsetFields).length > 0) updateOps.$unset = unsetFields;
+      const doc = await MongooseModels.User.findByIdAndUpdate(id, updateOps, { new: true }).lean();
       return doc ? mapDoc<StoredUser>(doc) : null;
     }
+
     const store = loadLocalStore();
     const idx = store.users.findIndex((u) => u.id === id);
     if (idx === -1) return null;
-    store.users[idx] = { ...store.users[idx], ...patch };
+    const nextUser = { ...store.users[idx], ...setFields } as Record<string, unknown>;
+    for (const key of Object.keys(unsetFields)) {
+      delete nextUser[key];
+    }
+    store.users[idx] = nextUser as unknown as StoredUser;
     await schedulePersist();
     return store.users[idx];
   },

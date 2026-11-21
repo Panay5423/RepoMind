@@ -5,6 +5,7 @@ import { Copy, Download, Edit3, Eye, FileText, RefreshCw, Save, Sparkles } from 
 import type { DocType, DocumentationDTO } from '../../../shared/types.ts';
 import { api } from '../../lib/api.ts';
 import { useToast } from '../../context/ToastContext.tsx';
+import { PRIMARY_BLUE_BTN, SECONDARY_WHITE_BTN } from '../ui/PremiumPrimitives.tsx';
 
 interface DocsTabProps {
   repositoryId: string;
@@ -128,32 +129,29 @@ export function DocsTab({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Doc Type Selector */}
-      <aside className="lg:col-span-3 rounded-xl border border-white/[0.08] bg-[#111827] p-3 h-fit space-y-2">
+      <aside className="lg:col-span-3 rounded-2xl border border-[#E2E8F0] bg-white p-3.5 h-fit space-y-2 shadow-2xs">
         <div className="space-y-1">
-          <p className="px-3 py-2 text-xs font-semibold text-slate-400">
+          <p className="px-3 py-2 text-xs font-bold text-[#64748B]">
             Documentation Suites ({initialDocs.length}/{DOC_TYPES.length})
           </p>
           {DOC_TYPES.map((item) => {
             const exists = initialDocs.some((d) => d.type === item.type);
+            const active = selectedType === item.type;
             return (
               <button
                 key={item.type}
                 type="button"
                 onClick={() => setSelectedType(item.type)}
-                className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
-                  selectedType === item.type
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-300 hover:bg-white/[0.04] hover:text-white'
+                className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
+                  active
+                    ? 'bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]'
+                    : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]'
                 }`}
               >
                 <span className="truncate">{item.label}</span>
                 <span
                   className={`text-[10px] font-mono ${
-                    selectedType === item.type
-                      ? 'text-blue-100'
-                      : exists
-                      ? 'text-emerald-400'
-                      : 'text-slate-500'
+                    active ? 'text-[#2563EB]' : exists ? 'text-[#059669]' : 'text-[#94A3B8]'
                   }`}
                 >
                   {exists ? 'Ready' : 'New'}
@@ -164,33 +162,31 @@ export function DocsTab({
         </div>
 
         {missingCount > 0 && (
-          <div className="pt-2 border-t border-white/[0.08]">
+          <div className="pt-2.5 border-t border-[#E2E8F0]">
             <button
               type="button"
               disabled={generating}
               onClick={() => void handleGenerateMissing()}
-              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 text-xs font-medium text-blue-300 transition-colors disabled:opacity-50"
+              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] text-xs font-semibold text-[#2563EB] transition-colors disabled:opacity-50"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>
-                {batchProgress || `Generate ${missingCount} Missing`}
-              </span>
+              <span>{batchProgress || `Generate ${missingCount} Missing`}</span>
             </button>
           </div>
         )}
       </aside>
 
       {/* Editor & Preview */}
-      <div className="lg:col-span-9 rounded-xl border border-white/[0.08] bg-[#111827] overflow-hidden flex flex-col min-h-[580px]">
-        <div className="px-5 py-3.5 border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+      <div className="lg:col-span-9 rounded-2xl border border-[#E2E8F0] bg-white overflow-hidden flex flex-col min-h-[580px] shadow-2xs">
+        <div className="px-5 py-3.5 border-b border-[#E2E8F0] bg-[#F8FAFC]/80 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <h2 className="font-display text-sm font-semibold text-white">{currentMeta.label}</h2>
-            <div className="inline-flex items-center gap-1 p-0.5 rounded-md bg-[#0B0F19] border border-white/[0.08]">
+            <h2 className="font-display text-sm font-bold text-[#0F172A]">{currentMeta.label}</h2>
+            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-white border border-[#E2E8F0]">
               <button
                 type="button"
                 onClick={() => setViewMode('preview')}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium ${
-                  viewMode === 'preview' ? 'bg-[#111827] text-white' : 'text-slate-400'
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                  viewMode === 'preview' ? 'bg-[#EFF6FF] text-[#2563EB]' : 'text-[#64748B]'
                 }`}
               >
                 <Eye className="w-3.5 h-3.5" />
@@ -199,8 +195,8 @@ export function DocsTab({
               <button
                 type="button"
                 onClick={() => setViewMode('edit')}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium ${
-                  viewMode === 'edit' ? 'bg-[#111827] text-white' : 'text-slate-400'
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                  viewMode === 'edit' ? 'bg-[#EFF6FF] text-[#2563EB]' : 'text-[#64748B]'
                 }`}
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -208,7 +204,7 @@ export function DocsTab({
               </button>
             </div>
             {wordCount > 0 && (
-              <span className="hidden sm:inline text-[11px] font-mono text-slate-500 tabular-nums">
+              <span className="hidden sm:inline text-[11px] font-mono text-[#64748B] tabular-nums">
                 {wordCount} words
               </span>
             )}
@@ -220,7 +216,7 @@ export function DocsTab({
                 type="button"
                 disabled={saving}
                 onClick={() => void handleSave()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-xs font-medium text-emerald-300 hover:bg-white/[0.04]"
+                className={`${SECONDARY_WHITE_BTN} px-3 py-1.5 text-xs text-[#059669]`}
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>{saving ? 'Saving...' : 'Save'}</span>
@@ -231,17 +227,17 @@ export function DocsTab({
                 <button
                   type="button"
                   onClick={() => void handleCopy()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/[0.04]"
+                  className={`${SECONDARY_WHITE_BTN} px-3 py-1.5 text-xs`}
                 >
-                  <Copy className="w-3.5 h-3.5" />
+                  <Copy className="w-3.5 h-3.5 text-[#475569]" />
                   <span>Copy</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleDownload}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-300 hover:text-white hover:bg-white/[0.04]"
+                  className={`${SECONDARY_WHITE_BTN} px-3 py-1.5 text-xs`}
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-3.5 h-3.5 text-[#475569]" />
                   <span>Download</span>
                 </button>
               </>
@@ -250,28 +246,30 @@ export function DocsTab({
               type="button"
               disabled={generating}
               onClick={() => void handleGenerate()}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition-colors disabled:opacity-60"
+              className={`${PRIMARY_BLUE_BTN} px-3.5 py-1.5 text-xs`}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${generating ? 'animate-spin' : ''}`} />
               <span>
                 {generating
                   ? 'Generating...'
                   : currentDoc
-                  ? 'Regenerate'
-                  : 'Generate with Gemini'}
+                    ? 'Regenerate'
+                    : 'Generate with Gemini'}
               </span>
             </button>
           </div>
         </div>
 
-        <div className="flex-1 p-6 overflow-auto bg-[#0B0F19]/60">
+        <div className="flex-1 p-6 overflow-auto bg-white">
           {!currentDoc && !draftContent ? (
             <div className="h-full flex flex-col items-center justify-center py-16 text-center">
-              <FileText className="w-8 h-8 text-slate-500 mb-3" />
-              <p className="text-sm font-medium text-white">
+              <div className="w-12 h-12 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center mb-3">
+                <FileText className="w-6 h-6 text-[#2563EB]" />
+              </div>
+              <p className="text-sm font-semibold text-[#0F172A]">
                 {currentMeta.label} has not been generated yet
               </p>
-              <p className="mt-1 text-xs text-slate-400 max-w-md">
+              <p className="mt-1.5 text-xs text-[#64748B] max-w-md">
                 Generate grounded documentation directly from your repository’s file manifest,
                 dependencies, and source excerpts.
               </p>
@@ -279,7 +277,7 @@ export function DocsTab({
                 type="button"
                 disabled={generating}
                 onClick={() => void handleGenerate()}
-                className="mt-5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition-colors"
+                className={`${PRIMARY_BLUE_BTN} mt-5 px-4 py-2 text-xs`}
               >
                 {generating ? 'Generating...' : `Generate ${currentMeta.label}`}
               </button>
@@ -288,7 +286,7 @@ export function DocsTab({
             <textarea
               value={draftContent}
               onChange={(e) => setDraftContent(e.target.value)}
-              className="w-full h-[500px] rounded-lg border border-white/10 bg-[#070A12] p-4 font-mono text-xs text-slate-200 leading-relaxed focus:outline-none focus:border-blue-500"
+              className="w-full h-[500px] rounded-xl border border-[#1E3A5F] bg-[#0B1F3A] p-4 font-mono text-xs text-[#E2E8F0] leading-relaxed focus:outline-none focus:border-[#3B82F6]"
             />
           ) : (
             <div className="repomind-prose max-w-3xl">

@@ -96,7 +96,7 @@ const KEYWORDS = new Set([
 function renderHighlightedLine(line: string) {
   const trimmed = line.trimStart();
   if (trimmed.startsWith('//') || trimmed.startsWith('#') || trimmed.startsWith('/*')) {
-    return <span className="text-[#64748B] italic">{line}</span>;
+    return <span className="text-[#94A3B8] italic">{line}</span>;
   }
 
   // Deterministic lightweight token split: strings, words, numbers, punctuation
@@ -130,7 +130,7 @@ function renderHighlightedLine(line: string) {
     }
     if (/^[A-Z][A-Za-z0-9_]*$/.test(tok)) {
       return (
-        <span key={idx} className="text-[#22D3EE]">
+        <span key={idx} className="text-[#60A5FA]">
           {tok}
         </span>
       );
@@ -157,7 +157,7 @@ function AccordionSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-t border-[#202A3A]">
+    <div className="border-t border-[#E2E8F0]">
       <button
         type="button"
         onClick={onToggle}
@@ -166,11 +166,11 @@ function AccordionSection({
       >
         <div className="flex items-center gap-2">
           <ChevronDown
-            className={`w-3.5 h-3.5 text-[#64748B] group-hover:text-[#F1F5F9] transition-transform duration-200 ${
+            className={`w-3.5 h-3.5 text-[#64748B] group-hover:text-[#2563EB] transition-transform duration-200 ${
               isOpen ? 'rotate-0' : '-rotate-90'
             }`}
           />
-          <span className="text-xs font-semibold text-[#F1F5F9] group-hover:text-white tracking-[-0.01em]">
+          <span className="text-xs font-semibold text-[#0F172A] group-hover:text-[#2563EB] tracking-[-0.01em] transition-colors">
             {title}
           </span>
         </div>
@@ -236,13 +236,16 @@ export function NodeInspectorSidebar({
     setTimeout(() => setCopiedKey((prev) => (prev === key ? null : prev)), 1600);
   };
 
+  const panelSurfaceClass =
+    'rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_28px_-12px_rgba(37,99,235,0.08)] p-5';
+
   if (selectedEdge) {
     const src = nodeMap.get(selectedEdge.source);
     const tgt = nodeMap.get(selectedEdge.target);
     const relStyle = RELATION_META[selectedEdge.relation] || RELATION_META.IMPORTS;
 
     return (
-      <aside className="rounded-xl border border-[#202A3A] bg-[#101623] p-5 flex flex-col justify-between h-full overflow-y-auto">
+      <aside className={`${panelSurfaceClass} flex flex-col justify-between h-full overflow-y-auto`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={selectedEdge.id}
@@ -253,12 +256,14 @@ export function NodeInspectorSidebar({
             className="space-y-5"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-mono text-[#60A5FA]">Relationship Edge</span>
+              <span className="text-xs font-mono font-semibold text-[#2563EB]">
+                Relationship Edge
+              </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={onClearEdge}
-                  className="text-xs text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
+                  className="text-xs font-medium text-[#64748B] hover:text-[#2563EB] transition-colors"
                 >
                   Back to Node
                 </button>
@@ -267,7 +272,7 @@ export function NodeInspectorSidebar({
                     type="button"
                     onClick={onCloseMobile}
                     aria-label="Close inspector"
-                    className="lg:hidden p-1 text-[#64748B] hover:text-[#F1F5F9]"
+                    className="lg:hidden p-1 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -276,24 +281,24 @@ export function NodeInspectorSidebar({
             </div>
 
             <div>
-              <h3 className="font-display text-lg font-semibold text-[#F1F5F9] tracking-[-0.015em]">
+              <h3 className="font-display text-lg font-semibold text-[#0F172A] tracking-[-0.015em]">
                 {selectedEdge.relation}
               </h3>
-              <p className="mt-1 text-[13px] text-[#94A3B8] leading-relaxed">{relStyle.description}</p>
+              <p className="mt-1 text-[13px] text-[#64748B] leading-relaxed">{relStyle.description}</p>
             </div>
 
-            <div className="space-y-2.5 border-t border-[#202A3A] pt-4 text-xs">
+            <div className="space-y-2.5 border-t border-[#E2E8F0] pt-4 text-xs">
               <div>
-                <p className="text-[#64748B] mb-1">Source Node</p>
+                <p className="text-[#64748B] font-medium mb-1">Source Node</p>
                 <button
                   type="button"
                   onClick={() => {
                     onClearEdge();
                     onSelectNode(selectedEdge.source);
                   }}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#60A5FA]/50 hover:bg-[#151D2B] text-[#F1F5F9] transition-colors"
+                  className="w-full text-left px-3 py-2.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#93C5FD] hover:bg-[#EFF6FF]/60 text-[#0F172A] transition-colors"
                 >
-                  <div className="font-medium truncate">{src?.name || selectedEdge.source}</div>
+                  <div className="font-semibold truncate">{src?.name || selectedEdge.source}</div>
                   {src?.filePath && (
                     <div className="font-mono text-[11px] text-[#64748B] truncate mt-0.5">
                       {src.filePath}
@@ -303,20 +308,20 @@ export function NodeInspectorSidebar({
               </div>
 
               <div className="flex justify-center py-0.5">
-                <ArrowRight className="w-3.5 h-3.5 text-[#64748B] rotate-90" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#2563EB] rotate-90" />
               </div>
 
               <div>
-                <p className="text-[#64748B] mb-1">Target Node</p>
+                <p className="text-[#64748B] font-medium mb-1">Target Node</p>
                 <button
                   type="button"
                   onClick={() => {
                     onClearEdge();
                     onSelectNode(selectedEdge.target);
                   }}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#60A5FA]/50 hover:bg-[#151D2B] text-[#F1F5F9] transition-colors"
+                  className="w-full text-left px-3 py-2.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#93C5FD] hover:bg-[#EFF6FF]/60 text-[#0F172A] transition-colors"
                 >
-                  <div className="font-medium truncate">{tgt?.name || selectedEdge.target}</div>
+                  <div className="font-semibold truncate">{tgt?.name || selectedEdge.target}</div>
                   {tgt?.filePath && (
                     <div className="font-mono text-[11px] text-[#64748B] truncate mt-0.5">
                       {tgt.filePath}
@@ -326,14 +331,16 @@ export function NodeInspectorSidebar({
               </div>
             </div>
 
-            <div className="border-t border-[#202A3A] pt-4 space-y-2.5 text-xs">
+            <div className="border-t border-[#E2E8F0] pt-4 space-y-2.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-[#64748B]">Edge Label</span>
-                <span className="font-mono text-[#F1F5F9]">{selectedEdge.label || selectedEdge.relation}</span>
+                <span className="font-mono font-medium text-[#0F172A]">
+                  {selectedEdge.label || selectedEdge.relation}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#64748B]">Occurrences</span>
-                <span className="font-mono text-[#F1F5F9] tabular-nums">
+                <span className="font-mono font-semibold text-[#0B1F3A] tabular-nums">
                   {selectedEdge.weight || 1}
                 </span>
               </div>
@@ -341,7 +348,7 @@ export function NodeInspectorSidebar({
                 <button
                   type="button"
                   onClick={() => onOpenFile(selectedEdge.filePath!, selectedEdge.line)}
-                  className="w-full mt-2 flex items-center justify-between px-3 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#60A5FA]/50 text-[#60A5FA] font-mono transition-colors"
+                  className="w-full mt-2 flex items-center justify-between px-3 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#93C5FD] hover:bg-[#EFF6FF]/50 text-[#2563EB] font-mono transition-colors"
                 >
                   <span className="truncate">
                     {selectedEdge.filePath}
@@ -359,11 +366,11 @@ export function NodeInspectorSidebar({
 
   if (!selectedNode) {
     return (
-      <aside className="rounded-xl border border-[#202A3A] bg-[#101623] p-5 flex flex-col justify-between h-full">
+      <aside className={`${panelSurfaceClass} flex flex-col justify-between h-full`}>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="inline-flex items-center gap-2 text-xs font-medium text-[#94A3B8]">
-              <Layers className="w-4 h-4 text-[#60A5FA]" />
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#2563EB]">
+              <Layers className="w-4 h-4" />
               <span>Inspector</span>
             </div>
             {onCloseMobile && (
@@ -371,22 +378,22 @@ export function NodeInspectorSidebar({
                 type="button"
                 onClick={onCloseMobile}
                 aria-label="Close inspector"
-                className="lg:hidden p-1 text-[#64748B] hover:text-[#F1F5F9]"
+                className="lg:hidden p-1 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
-          <h3 className="font-display text-sm font-semibold text-[#F1F5F9]">
+          <h3 className="font-display text-sm font-semibold text-[#0F172A]">
             Select a node or edge
           </h3>
-          <p className="text-[13px] text-[#94A3B8] leading-relaxed">
+          <p className="text-[13px] text-[#64748B] leading-relaxed">
             Click any architecture node or connection edge to inspect dependencies, caller chains,
             syntax-highlighted source previews, references, and traced data flows.
           </p>
         </div>
 
-        <div className="pt-4 border-t border-[#202A3A] text-xs text-[#64748B] space-y-1.5 font-mono">
+        <div className="pt-4 border-t border-[#E2E8F0] text-xs text-[#64748B] space-y-1.5 font-mono">
           <p>Double-click a module or file to drill down</p>
           <p>Shift + drag to multi-select nodes</p>
           <p>⌘K to search symbols or file paths</p>
@@ -417,7 +424,7 @@ export function NodeInspectorSidebar({
     : [];
 
   return (
-    <aside className="rounded-xl border border-[#202A3A] bg-[#101623] p-5 h-full overflow-y-auto">
+    <aside className={`${panelSurfaceClass} h-full overflow-y-auto`}>
       <AnimatePresence mode="wait">
         <motion.div
           key={selectedNode.id}
@@ -430,10 +437,14 @@ export function NodeInspectorSidebar({
           <div className="pb-4">
             <div className="flex items-center justify-between gap-2">
               <div className="inline-flex items-center gap-1.5 text-xs font-medium">
-                <Icon className={`w-3.5 h-3.5 ${meta.accentText}`} />
-                <span className={meta.accentText}>{meta.label}</span>
-                <span className="text-[#64748B]">·</span>
-                <span className="text-[#94A3B8] font-mono">{selectedNode.layer}</span>
+                <span
+                  className={`w-5 h-5 rounded-md ${meta.iconBg} flex items-center justify-center shrink-0`}
+                >
+                  <Icon className={`w-3 h-3 ${meta.accentText}`} />
+                </span>
+                <span className={`font-semibold ${meta.accentText}`}>{meta.label}</span>
+                <span className="text-[#CBD5E1]">·</span>
+                <span className="text-[#64748B] font-mono">{selectedNode.layer}</span>
               </div>
 
               <div className="flex items-center gap-1">
@@ -441,10 +452,10 @@ export function NodeInspectorSidebar({
                   type="button"
                   onClick={() => void handleCopy(selectedNode.name, 'name', 'symbol name')}
                   title="Copy node name"
-                  className="p-1.5 rounded-md text-[#64748B] hover:text-[#F1F5F9] hover:bg-[#151D2B] transition-colors"
+                  className="p-1.5 rounded-lg text-[#64748B] hover:text-[#2563EB] hover:bg-[#EFF6FF] transition-colors"
                 >
                   {copiedKey === 'name' ? (
-                    <Check className="w-3.5 h-3.5 text-[#34D399]" />
+                    <Check className="w-3.5 h-3.5 text-[#059669]" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
@@ -454,7 +465,7 @@ export function NodeInspectorSidebar({
                     type="button"
                     onClick={onCloseMobile}
                     aria-label="Close inspector"
-                    className="lg:hidden p-1.5 rounded-md text-[#64748B] hover:text-[#F1F5F9]"
+                    className="lg:hidden p-1.5 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -462,38 +473,38 @@ export function NodeInspectorSidebar({
               </div>
             </div>
 
-            <h3 className="mt-1.5 font-display text-[16px] font-semibold text-[#F1F5F9] tracking-[-0.015em] break-words">
+            <h3 className="mt-2 font-display text-[16px] font-semibold text-[#0F172A] tracking-[-0.015em] break-words">
               {selectedNode.name}
             </h3>
 
             {/* File path breadcrumbs */}
             {selectedNode.filePath && (
-              <div className="mt-2.5 flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B]">
+              <div className="mt-2.5 flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC]">
                 <button
                   type="button"
                   onClick={() =>
                     onOpenFile(selectedNode.filePath!, selectedNode.line, selectedNode.endLine)
                   }
-                  className="flex items-center flex-wrap gap-1 min-w-0 text-left text-[11px] font-mono text-[#94A3B8] hover:text-[#60A5FA] transition-colors"
+                  className="flex items-center flex-wrap gap-1 min-w-0 text-left text-[11px] font-mono text-[#64748B] hover:text-[#2563EB] transition-colors"
                   title="Open source file at exact line"
                 >
-                  <FileCode2 className="w-3.5 h-3.5 text-[#60A5FA] shrink-0 mr-0.5" />
+                  <FileCode2 className="w-3.5 h-3.5 text-[#2563EB] shrink-0 mr-0.5" />
                   {pathSegments.map((seg, i) => (
                     <span key={`${seg}-${i}`} className="inline-flex items-center gap-1 min-w-0">
                       <span
                         className={`truncate ${
-                          i === pathSegments.length - 1 ? 'text-[#F1F5F9]' : 'text-[#64748B]'
+                          i === pathSegments.length - 1 ? 'text-[#0F172A] font-medium' : 'text-[#64748B]'
                         }`}
                       >
                         {seg}
                       </span>
                       {i < pathSegments.length - 1 && (
-                        <ChevronRight className="w-2.5 h-2.5 text-[#475569] shrink-0" />
+                        <ChevronRight className="w-2.5 h-2.5 text-[#94A3B8] shrink-0" />
                       )}
                     </span>
                   ))}
                   {selectedNode.line && (
-                    <span className="text-[#60A5FA] shrink-0">:{selectedNode.line}</span>
+                    <span className="text-[#2563EB] font-semibold shrink-0">:{selectedNode.line}</span>
                   )}
                 </button>
 
@@ -507,10 +518,10 @@ export function NodeInspectorSidebar({
                     )
                   }
                   title="Copy file path"
-                  className="p-1 rounded text-[#64748B] hover:text-[#F1F5F9] transition-colors shrink-0"
+                  className="p-1 rounded-md text-[#64748B] hover:text-[#2563EB] hover:bg-white transition-colors shrink-0"
                 >
                   {copiedKey === 'path' ? (
-                    <Check className="w-3 h-3 text-[#34D399]" />
+                    <Check className="w-3 h-3 text-[#059669]" />
                   ) : (
                     <Copy className="w-3 h-3" />
                   )}
@@ -525,25 +536,25 @@ export function NodeInspectorSidebar({
             isOpen={openSections.overview}
             onToggle={() => toggleSection('overview')}
           >
-            <p className="text-[13px] text-[#94A3B8] leading-relaxed">{selectedNode.description}</p>
+            <p className="text-[13px] text-[#475569] leading-relaxed">{selectedNode.description}</p>
 
             {/* Tabular metrics */}
-            <div className="mt-3 grid grid-cols-3 gap-2 rounded-lg border border-[#202A3A] bg-[#0D111B] p-2.5 text-xs font-mono tabular-nums">
+            <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-2.5 text-xs font-mono tabular-nums">
               <div>
                 <div className="text-[10.5px] text-[#64748B]">Incoming</div>
-                <div className="mt-0.5 text-sm font-semibold text-[#F1F5F9]">
+                <div className="mt-0.5 text-sm font-bold text-[#0B1F3A]">
                   {selectedNode.incomingCount}
                 </div>
               </div>
               <div>
                 <div className="text-[10.5px] text-[#64748B]">Outgoing</div>
-                <div className="mt-0.5 text-sm font-semibold text-[#F1F5F9]">
+                <div className="mt-0.5 text-sm font-bold text-[#0B1F3A]">
                   {selectedNode.outgoingCount}
                 </div>
               </div>
               <div>
                 <div className="text-[10.5px] text-[#64748B]">Usage</div>
-                <div className="mt-0.5 text-sm font-semibold text-[#F1F5F9]">
+                <div className="mt-0.5 text-sm font-bold text-[#2563EB]">
                   {selectedNode.usageCount}
                 </div>
               </div>
@@ -553,11 +564,11 @@ export function NodeInspectorSidebar({
             {(selectedNode.metadata?.parameters?.length ||
               selectedNode.metadata?.returnType ||
               selectedNode.metadata?.extendsClass) && (
-              <div className="mt-3 space-y-1 text-[11.5px] font-mono rounded-lg border border-[#202A3A] bg-[#080B12] p-2.5">
+              <div className="mt-3 space-y-1 text-[11.5px] font-mono rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-2.5">
                 {selectedNode.metadata.parameters && selectedNode.metadata.parameters.length > 0 && (
-                  <div className="text-[#94A3B8] break-words">
+                  <div className="text-[#64748B] break-words">
                     params:{' '}
-                    <span className="text-[#F1F5F9]">
+                    <span className="text-[#0F172A] font-medium">
                       (
                       {selectedNode.metadata.parameters
                         .map((p) => `${p.name}${p.type ? `: ${p.type}` : ''}`)
@@ -567,14 +578,19 @@ export function NodeInspectorSidebar({
                   </div>
                 )}
                 {selectedNode.metadata.returnType && (
-                  <div className="text-[#94A3B8]">
-                    returns: <span className="text-[#60A5FA]">{selectedNode.metadata.returnType}</span>
+                  <div className="text-[#64748B]">
+                    returns:{' '}
+                    <span className="text-[#2563EB] font-medium">
+                      {selectedNode.metadata.returnType}
+                    </span>
                   </div>
                 )}
                 {selectedNode.metadata.extendsClass && (
-                  <div className="text-[#94A3B8]">
+                  <div className="text-[#64748B]">
                     extends:{' '}
-                    <span className="text-[#FBBF24]">{selectedNode.metadata.extendsClass}</span>
+                    <span className="text-[#D97706] font-medium">
+                      {selectedNode.metadata.extendsClass}
+                    </span>
                   </div>
                 )}
               </div>
@@ -585,33 +601,33 @@ export function NodeInspectorSidebar({
               <button
                 type="button"
                 onClick={() => onFocusNode(selectedNode.id)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#60A5FA]/50 hover:bg-[#151D2B] text-xs text-[#F1F5F9] transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#93C5FD] hover:bg-[#EFF6FF]/60 text-xs font-medium text-[#0F172A] transition-colors"
               >
-                <Crosshair className="w-3.5 h-3.5 text-[#60A5FA] shrink-0" />
+                <Crosshair className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
                 <span className="truncate">Focus Node</span>
               </button>
               <button
                 type="button"
                 onClick={() => onFilterMode('deps')}
-                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#A78BFA]/50 hover:bg-[#151D2B] text-xs text-[#F1F5F9] transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#93C5FD] hover:bg-[#EFF6FF]/60 text-xs font-medium text-[#0F172A] transition-colors"
               >
-                <ArrowRight className="w-3.5 h-3.5 text-[#A78BFA] shrink-0" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#4F46E5] shrink-0" />
                 <span className="truncate">Dependencies</span>
               </button>
               <button
                 type="button"
                 onClick={() => onFilterMode('callers')}
-                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#34D399]/50 hover:bg-[#151D2B] text-xs text-[#F1F5F9] transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#6EE7B7] hover:bg-[#ECFDF5]/60 text-xs font-medium text-[#0F172A] transition-colors"
               >
-                <ArrowLeft className="w-3.5 h-3.5 text-[#34D399] shrink-0" />
+                <ArrowLeft className="w-3.5 h-3.5 text-[#059669] shrink-0" />
                 <span className="truncate">Callers</span>
               </button>
               <button
                 type="button"
                 onClick={() => onTraceFlow(selectedNode)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#22D3EE]/50 hover:bg-[#151D2B] text-xs text-[#F1F5F9] transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#7DD3FC] hover:bg-[#F0F9FF]/60 text-xs font-medium text-[#0F172A] transition-colors"
               >
-                <Workflow className="w-3.5 h-3.5 text-[#22D3EE] shrink-0" />
+                <Workflow className="w-3.5 h-3.5 text-[#0284C7] shrink-0" />
                 <span className="truncate">Trace Flow</span>
               </button>
               {selectedNode.filePath && (
@@ -620,25 +636,25 @@ export function NodeInspectorSidebar({
                   onClick={() =>
                     onOpenFile(selectedNode.filePath!, selectedNode.line, selectedNode.endLine)
                   }
-                  className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#FBBF24]/50 hover:bg-[#151D2B] text-xs text-[#F1F5F9] transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#FCD34D] hover:bg-[#FFFBEB]/60 text-xs font-medium text-[#0F172A] transition-colors"
                 >
-                  <FileCode2 className="w-3.5 h-3.5 text-[#FBBF24] shrink-0" />
+                  <FileCode2 className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
                   <span className="truncate">View Source</span>
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => onFindReferences(selectedNode.name)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#60A5FA]/50 hover:bg-[#151D2B] text-xs text-[#F1F5F9] transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#93C5FD] hover:bg-[#EFF6FF]/60 text-xs font-medium text-[#0F172A] transition-colors"
               >
-                <Search className="w-3.5 h-3.5 text-[#94A3B8] shrink-0" />
+                <Search className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
                 <span className="truncate">Find Refs</span>
               </button>
               {selectedNode.drillDownLevel && (
                 <button
                   type="button"
                   onClick={() => onDrillDown(selectedNode)}
-                  className="col-span-2 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#60A5FA]/12 border border-[#60A5FA]/35 hover:bg-[#60A5FA]/20 text-xs font-medium text-[#60A5FA] transition-colors"
+                  className="col-span-2 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] hover:bg-[#DBEAFE] text-xs font-semibold text-[#1D4ED8] transition-colors"
                 >
                   <ArrowDownRight className="w-3.5 h-3.5" />
                   <span>Drill Down to {selectedNode.drillDownLevel} level</span>
@@ -650,45 +666,56 @@ export function NodeInspectorSidebar({
           {/* 2. DEPENDENCIES & IMPACT */}
           <AccordionSection
             title="Dependencies & Impact"
-            count={impact ? impact.transitiveDependencies.length + impact.transitiveDependents.length : undefined}
+            count={
+              impact
+                ? impact.transitiveDependencies.length + impact.transitiveDependents.length
+                : undefined
+            }
             isOpen={openSections.dependencies}
             onToggle={() => toggleSection('dependencies')}
           >
             {impactLoading ? (
               <div className="space-y-2">
-                <div className="h-4 w-2/3 rounded bg-[#151D2B] animate-pulse" />
-                <div className="h-12 rounded-lg bg-[#151D2B] animate-pulse" />
+                <div className="h-4 w-2/3 rounded bg-[#F1F5F9] animate-pulse" />
+                <div className="h-12 rounded-xl bg-[#F1F5F9] animate-pulse" />
               </div>
             ) : impact ? (
               <div className="space-y-2.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1.5 text-[#94A3B8]">
-                    <Activity className="w-3.5 h-3.5 text-[#FBBF24]" />
+                  <span className="inline-flex items-center gap-1.5 text-[#64748B]">
+                    <Activity className="w-3.5 h-3.5 text-[#D97706]" />
                     <span>Blast radius</span>
                   </span>
                   <span
-                    className={`font-mono text-[11px] uppercase font-medium ${
+                    className={`font-mono text-[11px] uppercase font-semibold ${
                       impact.riskLevel === 'high'
-                        ? 'text-[#FB7185]'
+                        ? 'text-[#E11D48]'
                         : impact.riskLevel === 'medium'
-                          ? 'text-[#FBBF24]'
-                          : 'text-[#34D399]'
+                          ? 'text-[#D97706]'
+                          : 'text-[#059669]'
                     }`}
                   >
                     {impact.riskLevel} risk
                   </span>
                 </div>
 
-                <div className="text-[#94A3B8] font-mono text-[11px] tabular-nums">
-                  Dependents: <span className="text-[#F1F5F9]">{impact.transitiveDependents.length}</span>
-                  <span className="mx-1.5 text-[#64748B]">·</span>
-                  Files: <span className="text-[#F1F5F9]">{impact.affectedFiles.length}</span>
-                  <span className="mx-1.5 text-[#64748B]">·</span>
-                  Deps: <span className="text-[#F1F5F9]">{impact.transitiveDependencies.length}</span>
+                <div className="text-[#64748B] font-mono text-[11px] tabular-nums">
+                  Dependents:{' '}
+                  <span className="text-[#0F172A] font-semibold">
+                    {impact.transitiveDependents.length}
+                  </span>
+                  <span className="mx-1.5 text-[#CBD5E1]">·</span>
+                  Files:{' '}
+                  <span className="text-[#0F172A] font-semibold">{impact.affectedFiles.length}</span>
+                  <span className="mx-1.5 text-[#CBD5E1]">·</span>
+                  Deps:{' '}
+                  <span className="text-[#0F172A] font-semibold">
+                    {impact.transitiveDependencies.length}
+                  </span>
                 </div>
 
                 {impact.affectedApisAndComponents.length > 0 && (
-                  <div className="rounded-lg border border-[#202A3A] bg-[#0D111B] p-2.5 space-y-1">
+                  <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-2.5 space-y-1">
                     <div className="text-[11px] text-[#64748B]">Affected entry points</div>
                     <div className="flex flex-wrap gap-x-2 gap-y-1 font-mono text-[11px]">
                       {impact.affectedApisAndComponents.slice(0, 6).map((a) => (
@@ -696,7 +723,7 @@ export function NodeInspectorSidebar({
                           key={a.id}
                           type="button"
                           onClick={() => onSelectNode(a.id)}
-                          className="text-[#60A5FA] hover:underline truncate max-w-full"
+                          className="text-[#2563EB] hover:underline truncate max-w-full"
                         >
                           {a.name}
                         </button>
@@ -726,10 +753,10 @@ export function NodeInspectorSidebar({
                     key={e.id}
                     type="button"
                     onClick={() => onSelectNode(e.target)}
-                    className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#60A5FA]/45 hover:bg-[#151D2B] text-left transition-colors"
+                    className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#93C5FD] hover:bg-[#EFF6FF]/60 text-left transition-colors"
                   >
-                    <span className="flex items-center gap-1.5 text-[#F1F5F9] truncate">
-                      <ArrowRight className="w-3 h-3 text-[#A78BFA] shrink-0" />
+                    <span className="flex items-center gap-1.5 text-[#0F172A] font-medium truncate">
+                      <ArrowRight className="w-3 h-3 text-[#4F46E5] shrink-0" />
                       <span className="truncate">{nodeMap.get(e.target)?.name || e.target}</span>
                     </span>
                     <span className="font-mono text-[10px] text-[#64748B] shrink-0">
@@ -742,10 +769,10 @@ export function NodeInspectorSidebar({
                     key={e.id}
                     type="button"
                     onClick={() => onSelectNode(e.source)}
-                    className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#60A5FA]/45 hover:bg-[#151D2B] text-left transition-colors"
+                    className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#93C5FD] hover:bg-[#EFF6FF]/60 text-left transition-colors"
                   >
-                    <span className="flex items-center gap-1.5 text-[#CBD5E1] truncate">
-                      <ArrowLeft className="w-3 h-3 text-[#60A5FA] shrink-0" />
+                    <span className="flex items-center gap-1.5 text-[#334155] font-medium truncate">
+                      <ArrowLeft className="w-3 h-3 text-[#2563EB] shrink-0" />
                       <span className="truncate">{nodeMap.get(e.source)?.name || e.source}</span>
                     </span>
                     <span className="font-mono text-[10px] text-[#64748B] shrink-0">
@@ -757,15 +784,15 @@ export function NodeInspectorSidebar({
             )}
           </AccordionSection>
 
-          {/* 4. SOURCE CODE (Syntax-Highlighted Preview) */}
+          {/* 4. SOURCE CODE (High-Contrast Deep Navy #0B1F3A Syntax Preview) */}
           {selectedNode.codePreview && (
             <AccordionSection
               title="Source Code"
               isOpen={openSections.source}
               onToggle={() => toggleSection('source')}
             >
-              <div className="rounded-lg border border-[#202A3A] bg-[#080B12] overflow-hidden">
-                <div className="px-3 py-1.5 border-b border-[#202A3A] bg-[#0D111B] flex items-center justify-between text-[11px] font-mono text-[#64748B]">
+              <div className="rounded-xl border border-[#1E3A5F] bg-[#0B1F3A] overflow-hidden shadow-sm">
+                <div className="px-3 py-1.5 border-b border-[#1E3A5F] bg-[#0F2747] flex items-center justify-between text-[11px] font-mono text-[#93C5FD]">
                   <span className="truncate">
                     {selectedNode.filePath || 'snippet'}
                     {selectedNode.line ? `:${selectedNode.line}` : ''}
@@ -776,7 +803,7 @@ export function NodeInspectorSidebar({
                       onClick={() =>
                         void handleCopy(selectedNode.codePreview!, 'snippet', 'source preview')
                       }
-                      className="text-[#94A3B8] hover:text-[#F1F5F9] transition-colors inline-flex items-center gap-1"
+                      className="text-[#CBD5E1] hover:text-white transition-colors inline-flex items-center gap-1"
                     >
                       {copiedKey === 'snippet' ? (
                         <Check className="w-3 h-3 text-[#34D399]" />
@@ -791,7 +818,7 @@ export function NodeInspectorSidebar({
                         onClick={() =>
                           onOpenFile(selectedNode.filePath!, selectedNode.line, selectedNode.endLine)
                         }
-                        className="text-[#60A5FA] hover:underline"
+                        className="text-[#60A5FA] hover:text-white hover:underline"
                       >
                         Open
                       </button>
@@ -801,7 +828,7 @@ export function NodeInspectorSidebar({
                 <div className="p-3 overflow-x-auto text-[11.5px] font-mono leading-[1.6]">
                   {selectedNode.codePreview.split('\n').map((lineText, idx) => (
                     <div key={idx} className="flex gap-3">
-                      <span className="w-6 text-right select-none text-[#475569] tabular-nums shrink-0">
+                      <span className="w-6 text-right select-none text-[#64748B] tabular-nums shrink-0">
                         {(selectedNode.line || 1) + idx}
                       </span>
                       <span className="whitespace-pre">{renderHighlightedLine(lineText)}</span>
@@ -828,10 +855,10 @@ export function NodeInspectorSidebar({
                     key={c.id}
                     type="button"
                     onClick={() => onOpenFile(c.filePath, c.line, c.endLine)}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#0D111B] border border-[#202A3A] hover:border-[#FBBF24]/45 text-[#F1F5F9] hover:text-[#FBBF24] text-left transition-colors"
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#93C5FD] text-[#0F172A] hover:text-[#1D4ED8] text-left transition-colors"
                   >
                     <span className="inline-flex items-center gap-1.5 truncate">
-                      <GitBranch className="w-3 h-3 text-[#FBBF24] shrink-0" />
+                      <GitBranch className="w-3 h-3 text-[#D97706] shrink-0" />
                       <span className="truncate">class {c.name}</span>
                     </span>
                     <span className="text-[10px] text-[#64748B] tabular-nums">L{c.line}</span>
@@ -842,7 +869,7 @@ export function NodeInspectorSidebar({
                     key={f.id}
                     type="button"
                     onClick={() => onOpenFile(f.filePath, f.line, f.endLine)}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#0D111B] border border-[#202A3A] hover:border-[#60A5FA]/45 text-[#CBD5E1] hover:text-[#60A5FA] text-left transition-colors"
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#93C5FD] text-[#334155] hover:text-[#2563EB] text-left transition-colors"
                   >
                     <span className="truncate">{f.name}()</span>
                     <span className="text-[10px] text-[#64748B] tabular-nums">L{f.line}</span>
@@ -870,13 +897,13 @@ export function NodeInspectorSidebar({
                     key={flow.id}
                     type="button"
                     onClick={() => onTraceFlow(selectedNode)}
-                    className="w-full text-left px-3 py-2 rounded-lg border border-[#202A3A] bg-[#0D111B] hover:border-[#22D3EE]/50 hover:bg-[#151D2B] transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#7DD3FC] hover:bg-[#F0F9FF]/60 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2 text-xs">
-                      <span className="font-mono font-medium text-[#F1F5F9] truncate">
+                      <span className="font-mono font-semibold text-[#0F172A] truncate">
                         {flow.title}
                       </span>
-                      <span className="font-mono text-[10px] text-[#22D3EE] shrink-0 tabular-nums">
+                      <span className="font-mono text-[10px] font-semibold text-[#0284C7] shrink-0 tabular-nums">
                         {flow.steps.length} steps
                       </span>
                     </div>
